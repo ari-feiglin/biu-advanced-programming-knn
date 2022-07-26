@@ -47,7 +47,7 @@ namespace knn {
             
             std::string class_type() const override { return this->m_class_name; }
 
-            const T& data() const override { return this->m_data; }
+            const misc::array<double>& data() const override { return this->m_data; }
     }
 
     /**
