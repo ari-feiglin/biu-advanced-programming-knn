@@ -1,5 +1,5 @@
 # BIU Advanced Programming Assignment Submission
-**Ari Feiglin, Gal N...**
+**Ari Feiglin, Gal Nemetsky**
 
 ## General Structure
 
