@@ -45,7 +45,7 @@ namespace knn {
                 m_data(data), m_class_name(nullptr) {}
 
             CartDataPoint(std::string class_name, const misc::array<double> data) :
-                m_class_name(class_name), m_data(data) {}
+                m_data(data), m_class_name(class_name) {}
             
             std::string class_type() const override { return this->m_class_name; }
 
@@ -113,7 +113,7 @@ namespace knn {
              * Stores the distance and index of the Data Point.
              */
             template <typename M>
-            static struct DistancePoint {
+            struct DistancePoint {
                 int index;
                 M distance;
 
@@ -128,7 +128,16 @@ namespace knn {
              * @return              A vector of all the distances.
              */
             template <typename M>
-            std::vector<DistancePoint<M>> transform_data(const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const;
+            std::vector<DistancePoint<M>> transform_data(const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const {
+               std::vector<DistancePoint<M>> distances;
+               int i = 0;
+
+               for (DataPoint<T>* it = this->m_data.begin(); it != this->m_data.end(); it++, i++) {
+                   distances.push_back(DistancePoint<M>(i, distance(p, *it)));
+               }
+
+               return distances;
+            }
     };
 }
 

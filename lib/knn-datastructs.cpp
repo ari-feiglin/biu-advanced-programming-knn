@@ -1,3 +1,4 @@
+#include <unordered_map>
 #include "knn.h"
 
 using namespace knn;
@@ -14,7 +15,8 @@ DataSet<T>& DataSet<T>::remove(int index) {
     return *this;
 }
 
-template <typename T, typename M>
+template <typename T>
+template <typename M>
 DataPoint<T> * DataSet<T>::get_k_nearest(int k, const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const {
     std::vector<DistancePoint<M>> selected_distances = quickselect(this->transform_data(p, distance), k);
     DataPoint<T>* selected_points = new DataPoint<T>[k];
@@ -27,7 +29,8 @@ DataPoint<T> * DataSet<T>::get_k_nearest(int k, const DataPoint<T> p, M (*distan
     return *selected_points;
 }
 
-template <typename T, typename M>
+template <typename T>
+template <typename M>
 std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const {
     std::unordered_map<std::string, int> classes;
     DataPoint<T> * selected_points = this->get_k_nearest(k, p, distance);
@@ -53,7 +56,9 @@ std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T> p, M (*dista
     return max_string;
 }
 
-template <typename T, typename M>
+/* 
+template <typename T>
+template <typename M>
 std::vector<DataSet<T>::DistancePoint<M>> DataSet<T>::transform_data(const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const {
     std::vector<DistancePoint<M>> distances;
     int i = 0;
@@ -64,4 +69,4 @@ std::vector<DataSet<T>::DistancePoint<M>> DataSet<T>::transform_data(const DataP
 
     return distances;
 }
-
+*/

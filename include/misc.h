@@ -45,7 +45,7 @@ namespace misc {
                 this->m_len = arr.m_len;
                 this->m_arr = new T[this->m_len];
 
-                for (int i = 0; i < this->m_arr; i++) {
+                for (int i = 0; i < this->m_len; i++) {
                     this->m_arr[i] = arr.m_arr[i];
                 }
             }
@@ -88,7 +88,7 @@ namespace misc {
                 this->m_arr = new T[list.size()];
 
                 int i = 0;
-                for (auto it = list.start(); it != list.end(); it++, i++) {
+                for (auto it = list.begin(); it != list.end(); it++, i++) {
                     this->m_arr[i] = *it;
                 }
             }
@@ -108,7 +108,7 @@ namespace misc {
             /**
              * @return The length of the array.
              */
-            int length() { return this->m_len; }
+            int length() const { return this->m_len; }
     };
 }
 
