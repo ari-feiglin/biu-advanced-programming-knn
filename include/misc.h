@@ -109,6 +109,6 @@ namespace misc {
              * @return The length of the array.
              */
             int length() { return this->m_len; }
-    }
+    };
 }
 

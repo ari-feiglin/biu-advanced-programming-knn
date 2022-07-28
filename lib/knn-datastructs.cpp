@@ -3,13 +3,13 @@
 using namespace knn;
 
 template <typename T>
-DataSet& DataSet<T>::add(DataPoint<T> data_point) {
+DataSet<T>& DataSet<T>::add(DataPoint<T> data_point) {
     this->m_data.push_back(data_point);
     return *this;
 }
 
 template <typename T>
-DataSet& DataSet<T>::remove(int index) {
+DataSet<T>& DataSet<T>::remove(int index) {
     this->m_data.erase(this->m_data.begin() + index);
     return *this;
 }
@@ -54,7 +54,7 @@ std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T> p, M (*dista
 }
 
 template <typename T, typename M>
-std::vector<DistancePoint<M>> DataSet<T>::transform_data(const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const {
+std::vector<DataSet<T>::DistancePoint<M>> DataSet<T>::transform_data(const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const {
     std::vector<DistancePoint<M>> distances;
     int i = 0;
 

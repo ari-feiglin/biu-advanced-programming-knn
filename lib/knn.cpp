@@ -37,9 +37,4 @@ namespace knn {
             else l = pi + 1;
         }
     }
-
-    DataPoint::~DataPoint() {}
-
-    
 } // knn
-

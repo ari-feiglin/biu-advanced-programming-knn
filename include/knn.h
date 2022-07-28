@@ -1,5 +1,7 @@
 #pragma once
-
+#include <vector> 
+#include "misc.h"
+#include <string>
 namespace knn {
     /**
      * Creates a vector of the k-smallest elements in an input vector.
@@ -32,7 +34,7 @@ namespace knn {
              * @return The data stored in the point.
              */
             virtual const T& data() const =0;
-    }
+    };
 
     class CartDataPoint : public DataPoint<misc::array<double>> {
         const misc::array<double> m_data;
@@ -48,7 +50,7 @@ namespace knn {
             std::string class_type() const override { return this->m_class_name; }
 
             const misc::array<double>& data() const override { return this->m_data; }
-    }
+    };
 
     /**
      * Class for storing a collection of data points and manipulating them.
@@ -111,7 +113,7 @@ namespace knn {
              * Stores the distance and index of the Data Point.
              */
             template <typename M>
-            struct DistancePoint {
+            static struct DistancePoint {
                 int index;
                 M distance;
 
@@ -127,6 +129,6 @@ namespace knn {
              */
             template <typename M>
             std::vector<DistancePoint<M>> transform_data(const DataPoint<T> p, M (*distance)(const DataPoint<T>, const DataPoint<T>)) const;
-    }
+    };
 }
 
