@@ -35,7 +35,7 @@ namespace misc {
              */
             template <typename... R>
             array(R... r) : m_len(0) {
-                helper(0, r...);
+                cont_helper(0, r...);
             }
             
             /**
@@ -50,7 +50,9 @@ namespace misc {
                 }
             }
 
-            array operator=(const array& arr) {
+            array& operator=(const array& arr) {
+                if (this == &arr) return *this;
+
                 delete[] this->m_arr;
 
                 this->m_len = arr.m_len;
@@ -59,6 +61,8 @@ namespace misc {
                 for (int i = 0; i < this->m_arr; i++) {
                     this->m_arr[i] = arr.m_arr[i];
                 }
+
+                return *this;
             }
 
             /**
@@ -71,11 +75,17 @@ namespace misc {
                 arr.m_arr = nullptr;
             }
 
-            array operator=(array&& arr) {
+            array& operator=(array&& arr) {
+                if (this == &arr) return *this;
+
+                delete[] this->m_arr;
+
                 this->m_arr = arr.m_arr;
                 this->m_len = arr.m_len;
 
                 arr.m_arr = nullptr;
+
+                return *this;
             }
 
             /**
@@ -85,10 +95,24 @@ namespace misc {
              */
             array(std::initializer_list<T>&& list) {
                 this->m_len = list.size();
-                this->m_arr = new T[list.size()];
+                this->m_arr = new T[this->m_len];
 
                 int i = 0;
                 for (auto it = list.begin(); it != list.end(); it++, i++) {
+                    this->m_arr[i] = *it;
+                }
+            }
+
+            /**
+             * Construct an array from vector.
+             * @param vec       The vector to construct from.
+             */
+            array(std::vector<T>& vec) {
+                this->m_len = vec.size();
+                this->m_arr = new T[this->m_len];
+
+                int i = 0;
+                for (auto it = vec.begin(); it != vec.end(); it++, i++) {
                     this->m_arr[i] = *it;
                 }
             }

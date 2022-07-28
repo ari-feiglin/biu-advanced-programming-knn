@@ -22,7 +22,7 @@ namespace distances {
         misc::array<double> p2Data = p2.data();
         double maxDis = 0.0;
         for(int i = 0; i < 4; i++){ //we know there are only 4 values of data in the arrays.
-            maxDis = max(maxDis, abs(p1Data[i] - p2Data[i]));
+            maxDis = std::max(maxDis, std::abs(p1Data[i] - p2Data[i]));
         } 
         return maxDis;
     }

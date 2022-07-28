@@ -1,4 +1,5 @@
-#include "misc.h"
+#pragma once
+
 #include "knn.h"
 
 namespace distances {
@@ -26,3 +27,4 @@ namespace distances {
      */
     double manhattan_distance(const knn::DataPoint<misc::array<double>>& p1, const knn::DataPoint<misc::array<double>>& p2);
 }
+
