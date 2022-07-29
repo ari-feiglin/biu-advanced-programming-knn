@@ -84,7 +84,6 @@ namespace misc {
                 this->m_arr = arr.m_arr;
                 this->m_len = arr.m_len;
 
-                std::cout << "New len " << this->m_len << std::endl;
                 arr.m_arr = nullptr;
 
                 return *this;
@@ -130,6 +129,7 @@ namespace misc {
              * @return      The value at index i.
              */
             T& operator[](int i) { return this->m_arr[i]; }
+            T operator[](int i) const { return this->m_arr[i]; }
 
             /**
              * @return The length of the array.

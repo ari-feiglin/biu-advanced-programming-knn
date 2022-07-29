@@ -9,21 +9,26 @@ namespace knn {
     template <typename T>
     class DataPoint {
         public:
-            virtual ~DataPoint() {} // =0;
+            virtual ~DataPoint() =0;
 
             /**
              * Get the name of the class of the data point (eg. if the dataset stores information
              * on flowers, a possible class name of a data point might be "rose".)
              * @return The name of the class of the data point.
              */
-            virtual std::string class_type() const {} // =0;
+            virtual std::string class_type() const =0;
 
             /**
              * Gets the data stored by the Data Point.
              * @return The data stored in the point.
              */
-            virtual const T& data() const {}// =0;
+            virtual const T& data() const =0;
+
+            virtual DataPoint<T>* clone() const =0;
     };
+
+    template <typename T>
+    DataPoint<T>::~DataPoint() { }
 
     /**
      * Class representing a literal data **point**.
@@ -35,21 +40,26 @@ namespace knn {
         std::string m_class_name;
 
         public:
-            CartDataPoint() {}
-
             CartDataPoint(const CartDataPoint& other) :
-                m_data(other.m_data), m_class_name(other.m_class_name) {}
+                m_data(other.m_data), m_class_name(other.m_class_name) { }
 
             CartDataPoint(CartDataPoint&& other) {
-                this->m_data = other.m_data;
+                this->m_data = std::move(other.m_data);
                 this->m_class_name = std::move(other.m_class_name);
+                other.m_data = nullptr;
             }
-
+            
             CartDataPoint(const misc::array<T> data) :
                 m_data(data), m_class_name() {}
 
             CartDataPoint(std::string class_name, const misc::array<T> data) :
                 m_data(data), m_class_name(class_name) {}
+
+            ~CartDataPoint() {}
+
+            CartDataPoint* clone() const override {
+                return new CartDataPoint(*this);
+            }
             
             std::string class_type() const override { return this->m_class_name; }
 
@@ -61,7 +71,7 @@ namespace knn {
      */
     template <typename T>
     class DataSet {
-        std::vector<DataPoint<T>> m_data;
+        std::vector<DataPoint<T>*> m_data;
 
         public:
             /**
@@ -69,27 +79,18 @@ namespace knn {
              */
             DataSet() {}
 
-            /**
-             * Constructors and assignment operators for the Data Set.
-             * @param data      The collection of data points to add to the data set.
-             * @param other     The data set to assign to this.
-             */
-            DataSet(const std::vector<DataPoint<T>>& data) : m_data(data) {}
-            DataSet(std::vector<DataPoint<T>>&& data) : m_data(std::move(data)) {}
+            ~DataSet() {
+                for (DataPoint<T>* p : this->m_data) {
+                    delete p;
+                }
+            }
 
             /**
              * Add a Data Point to the Data Set.
              * @param data_point        The point to add to the set.
              * @return                  A reference to this Data Set.
              */
-            DataSet& add(DataPoint<T> data_point);
-
-            /**
-             * Remove a Data Point to the Data Set.
-             * @param index         The index of the Data Point to remove.
-             * @return              A reference to this Data Set.
-             */
-            DataSet& remove(int index);
+            DataSet& add(const DataPoint<T>* data_point);
 
             /**
              * Gets the k-nearest neighbors to another input Data Point.
@@ -99,7 +100,7 @@ namespace knn {
              * @return              An array whose first k elements are the closest neighbors to p.
              */
             template <typename M>
-            DataPoint<T> * get_k_nearest(int k, const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const;
+            DataPoint<T>** get_k_nearest(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const;
 
             /**
              * Gets the class name of the nearest class to a give input Data Point.
@@ -109,7 +110,7 @@ namespace knn {
              * @return              The name of the nearest class to p.
              */
             template <typename M>
-            std::string get_nearest_class(int k, const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const;
+            std::string get_nearest_class(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const;
 
         private:
             /**
@@ -132,12 +133,13 @@ namespace knn {
              * @return              A vector of all the distances.
              */
             template <typename M>
-            std::vector<DistancePoint<M>> transform_data(const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const {
+            std::vector<DistancePoint<M>> transform_data(const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const {
                std::vector<DistancePoint<M>> distances;
                int i = 0;
 
-               for (auto it = this->m_data.begin(); it != this->m_data.end(); it++, i++) {
-                   distances.push_back(DistancePoint<M>(i, distance(p, *it)));
+               for (const DataPoint<T>* dp : this->m_data) {
+                   distances.push_back(DistancePoint<M>(i, distance(p, dp)));
+                   i++;
                }
 
                return distances;
@@ -159,26 +161,21 @@ namespace knn {
             misc::array<M (*)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&)> distances);*/
 
 template <typename T>
-DataSet<T>& DataSet<T>::add(DataPoint<T> data_point) {
-    this->m_data.push_back(data_point);
-    return *this;
-}
-
-template <typename T>
-DataSet<T>& DataSet<T>::remove(int index) {
-    this->m_data.erase(this->m_data.begin() + index);
+DataSet<T>& DataSet<T>::add(const DataPoint<T>* data_point) {
+    DataPoint<T>* new_point = data_point->clone();
+    this->m_data.push_back(new_point);
     return *this;
 }
 
 template <typename T>
 template <typename M>
-DataPoint<T> * DataSet<T>::get_k_nearest(int k, const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const {
+DataPoint<T>** DataSet<T>::get_k_nearest(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const {
     std::vector<DistancePoint<M>> selected_distances = quickselect<DistancePoint<M>>(this->transform_data(p, distance), k);
-    DataPoint<T>* selected_points = new DataPoint<T>[k];
-    int i = 0;
+    DataPoint<T>** selected_points = new DataPoint<T>*[k];
 
-    for (auto it = selected_distances.begin(); it != selected_distances.end(); it++, i++) {
-        selected_points[i] = this->m_data[it->index];
+    for (int i = 0; i < k; i++) {
+        DataPoint<T>* new_point = this->m_data[selected_distances[i].index]->clone();
+        selected_points[i] = new_point;
     }
     
     return selected_points;
@@ -186,17 +183,17 @@ DataPoint<T> * DataSet<T>::get_k_nearest(int k, const DataPoint<T>& p, M (*dista
 
 template <typename T>
 template <typename M>
-std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const {
+std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const {
     std::unordered_map<std::string, int> classes;
-    DataPoint<T> * selected_points = this->get_k_nearest(k, p, distance);
+    DataPoint<T>** selected_points = this->get_k_nearest(k, p, distance);
 
     for (int i = 0; i < k; i++) {
-        //std::cout << "Looking for " << selected_points[i].class_type() << std::endl;
-        if (classes.find(selected_points[i].class_type()) == classes.end()) {
-            classes[selected_points[i].class_type()] = 1;
+        if (classes.find(selected_points[i]->class_type()) == classes.end()) {
+            classes[selected_points[i]->class_type()] = 1;
         } else {
-            classes[selected_points[i].class_type()]++;
+            classes[selected_points[i]->class_type()]++;
         }
+        delete selected_points[i];
     }
 
     int max_count = 0;

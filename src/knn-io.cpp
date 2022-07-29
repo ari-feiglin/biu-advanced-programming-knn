@@ -51,7 +51,7 @@ DataSet<misc::array<T>>* initialize_dataset(std::ifstream& input_stream, T (*con
     CartDataPoint<T>* point;
     
     while ((point = read_point<T>(input_stream, converter, true)) != nullptr) {
-        dataset->add(*point);
+        dataset->add(point);
         delete point;
     }
 
@@ -67,10 +67,10 @@ DataSet<misc::array<T>>* initialize_dataset(std::ifstream& input_stream, T (*con
  * @param output_stream     The output file stream.     
  */
 template <typename T, typename M>
-void write_closest_class(DataSet<misc::array<T>>& data_set, int k, const CartDataPoint<T> p,
-        M (*distance)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&),
+void write_closest_class(DataSet<misc::array<T>>& data_set, int k, const CartDataPoint<T>* p,
+        M (*distance)(const DataPoint<misc::array<T>>*, const DataPoint<misc::array<T>>*),
         std::ofstream& output_stream) {
-    output_stream << data_set.get_nearest_class(k, p, distance) << std::endl;
+    output_stream << data_set.get_nearest_class(k, p, distance) << "\n";
 }
 
 /**
@@ -84,13 +84,13 @@ void write_closest_class(DataSet<misc::array<T>>& data_set, int k, const CartDat
  */
 template <typename T, typename M>
 void write_closest_classes(DataSet<misc::array<T>>& data_set, int k,
-        M (*distance)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&),
+        M (*distance)(const DataPoint<misc::array<T>>*, const DataPoint<misc::array<T>>*),
         std::ifstream& input_stream, std::ofstream& output_stream,
         T (*converter)(std::string)) {
     CartDataPoint<T>* p;
 
     while ((p = read_point(input_stream, converter, false)) != nullptr) {
-        write_closest_class<T,M>(data_set, k, *p, distance, output_stream);
+        write_closest_class<T,M>(data_set, k, p, distance, output_stream);
         delete p;
     }
 }
@@ -98,7 +98,7 @@ void write_closest_classes(DataSet<misc::array<T>>& data_set, int k,
 template <typename T, typename M>
 void all_distances(std::string classified, std::string unclassified, int k,
         T (*converter)(std::string), misc::array<std::string> output_names,
-        misc::array<M (*)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&)> distances) {
+        misc::array<M (*)(const DataPoint<misc::array<T>>*, const DataPoint<misc::array<T>>*)> distances) {
     std::ifstream classified_stream;
     classified_stream.open(classified);
 
@@ -123,7 +123,7 @@ double stod(std::string s) { return std::stod(s); }
 
 int main(int argc, char** argv) {
     auto names = misc::array<std::string>("euclidian.csv", "chebyshev.csv", "manhattan.csv");
-    auto distances = misc::array<double (*)(const DataPoint<misc::array<double>>&, const DataPoint<misc::array<double>>&)>(distances::euclidean_distance, distances::chebyshev_distance, distances::manhattan_distance);
+    auto distances = misc::array<double (*)(const DataPoint<misc::array<double>>*, const DataPoint<misc::array<double>>*)>(distances::euclidean_distance, distances::chebyshev_distance, distances::manhattan_distance);
     all_distances<double, double>("classified.csv", "Unclassified.csv", atoi(argv[1]), stod, names, distances);
 }
 

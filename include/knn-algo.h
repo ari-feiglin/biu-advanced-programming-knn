@@ -5,26 +5,27 @@
 namespace knn {
     namespace {
         template <typename T>
-        int partition(std::vector<T>& vec, int l, int h) {
-            std::cout << "Got " << h << std::endl;
-            T pivot = vec[(h + l) / 2];      // Choose the pivot to be the rightmost element
-            h++;
-            l--;
+        int partition(std::vector<T>& vec, int l, int h, int pi) {
+            T pivot = vec[pi];
+            std::swap(vec[pi], vec[h]);
+            int x = l;
 
-            while (l < h) {
-                std::cout << "Curr h, l " << h << " " << l << std::endl;
-                do { l++; } while(vec[l] < pivot);
-                do { h--; } while(pivot < vec[h]);
-                if  (l >= h) return h;
-                std::swap(vec[l], vec[h]);
+            for (int i = l; i < h; i++) {
+                if (vec[i] < pivot) {
+                    std::swap(vec[x], vec[i]);
+                    x++;
+                }
             }
+
+            std::swap(vec[h], vec[x]);
+
+            return x;
         }
 
         template <typename T>
         int random_partition(std::vector<T>& vec, int l, int h) {
             int random_pivot = rand() % (h - l + 1) + l;
-            std::swap(vec[random_pivot], vec[(h + l) / 2]);
-            return partition(vec, l, h);
+            return partition(vec, l, h, random_pivot);
         }
     } // anonymous
 
@@ -48,7 +49,7 @@ namespace knn {
             pi = random_partition(new_vec, l, h);
 
             if (pi == k - 1) return new_vec;
-            else if (k < pi) h = pi - 1;
+            else if (k - 1 < pi) h = pi - 1;
             else l = pi + 1;
         }
     }
