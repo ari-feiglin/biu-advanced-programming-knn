@@ -3,5 +3,8 @@
 *~
 *.swp
 *.swo
+
 knn
 .vscode/settings.json
+*.csv
+*.txt

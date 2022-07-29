@@ -4,36 +4,25 @@
 
 namespace knn {
     /**
-     * Creates a vector of the k-smallest elements in an input vector.
-     * @param vec           The vector to investigate.
-     * @param k             The k value used in the algorithm.
-     * @note                The function uses the Quick Select algorithm and thus has an average time
-     *                      complexity of O(n).
-     *                      Furthermore, the elements (T) must be comparable with the < operator.
-     */
-    template <typename T>
-    std::vector<T> quickselect(const std::vector<T>& vec, int k);
-
-    /**
      * Interface class for Data Points which represent points of data in a Data Set.
      */
     template <typename T>
     class DataPoint {
         public:
-            virtual ~DataPoint() =0;
+            virtual ~DataPoint() {} // =0;
 
             /**
              * Get the name of the class of the data point (eg. if the dataset stores information
              * on flowers, a possible class name of a data point might be "rose".)
              * @return The name of the class of the data point.
              */
-            virtual std::string class_type() const =0;
+            virtual std::string class_type() const {} // =0;
 
             /**
              * Gets the data stored by the Data Point.
              * @return The data stored in the point.
              */
-            virtual const T& data() const =0;
+            virtual const T& data() const {}// =0;
     };
 
     /**
@@ -46,8 +35,18 @@ namespace knn {
         std::string m_class_name;
 
         public:
+            CartDataPoint() {}
+
+            CartDataPoint(const CartDataPoint& other) :
+                m_data(other.m_data), m_class_name(other.m_class_name) {}
+
+            CartDataPoint(CartDataPoint&& other) {
+                this->m_data = other.m_data;
+                this->m_class_name = std::move(other.m_class_name);
+            }
+
             CartDataPoint(const misc::array<T> data) :
-                m_data(data), m_class_name(nullptr) {}
+                m_data(data), m_class_name() {}
 
             CartDataPoint(std::string class_name, const misc::array<T> data) :
                 m_data(data), m_class_name(class_name) {}
@@ -123,7 +122,7 @@ namespace knn {
                 M distance;
 
                 DistancePoint(int i, M d) : index(i), distance(d) {}
-                int operator<(DistancePoint<M> other) { return this->distance < other->distance; }
+                int operator<(DistancePoint<M> other) { return this->distance < other.distance; }
             };
 
             /**
@@ -137,7 +136,7 @@ namespace knn {
                std::vector<DistancePoint<M>> distances;
                int i = 0;
 
-               for (DataPoint<T>* it = this->m_data.begin(); it != this->m_data.end(); it++, i++) {
+               for (auto it = this->m_data.begin(); it != this->m_data.end(); it++, i++) {
                    distances.push_back(DistancePoint<M>(i, distance(p, *it)));
                }
 
@@ -153,10 +152,65 @@ namespace knn {
      * @param converter             Converter from string to correct datatype (T).
      * @param output_names          Names of output files.
      * @param distances             Array of distance functions.
-     */
+     *//*
     template <typename T, typename M>
     void all_distances(std::string classified, std::string unclassified, int k,
             T (*converter)(std::string), misc::array<std::string> output_names,
-            misc::array<M (*)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&)> distances);
+            misc::array<M (*)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&)> distances);*/
+
+template <typename T>
+DataSet<T>& DataSet<T>::add(DataPoint<T> data_point) {
+    this->m_data.push_back(data_point);
+    return *this;
+}
+
+template <typename T>
+DataSet<T>& DataSet<T>::remove(int index) {
+    this->m_data.erase(this->m_data.begin() + index);
+    return *this;
+}
+
+template <typename T>
+template <typename M>
+DataPoint<T> * DataSet<T>::get_k_nearest(int k, const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const {
+    std::vector<DistancePoint<M>> selected_distances = quickselect<DistancePoint<M>>(this->transform_data(p, distance), k);
+    DataPoint<T>* selected_points = new DataPoint<T>[k];
+    int i = 0;
+
+    for (auto it = selected_distances.begin(); it != selected_distances.end(); it++, i++) {
+        selected_points[i] = this->m_data[it->index];
+    }
+    
+    return selected_points;
+}
+
+template <typename T>
+template <typename M>
+std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T>& p, M (*distance)(const DataPoint<T>&, const DataPoint<T>&)) const {
+    std::unordered_map<std::string, int> classes;
+    DataPoint<T> * selected_points = this->get_k_nearest(k, p, distance);
+
+    for (int i = 0; i < k; i++) {
+        //std::cout << "Looking for " << selected_points[i].class_type() << std::endl;
+        if (classes.find(selected_points[i].class_type()) == classes.end()) {
+            classes[selected_points[i].class_type()] = 1;
+        } else {
+            classes[selected_points[i].class_type()]++;
+        }
+    }
+
+    int max_count = 0;
+    std::string max_string;
+
+    for (auto entry : classes) {
+        if (entry.second > max_count) {
+            max_string = entry.first;
+            max_count = entry.second;
+        }
+    }
+
+    return max_string;
+}
+
 }
 
