@@ -135,6 +135,20 @@ namespace misc {
              * @return The length of the array.
              */
             int length() const { return this->m_len; }
+
+            /**
+             * Check if two arrays have the same length, throw an exception if they don't.
+             * @param other     Another array.
+             * @throws          std::invalid_argument if the arrays differ in length.
+             */
+            template <typename M>
+            void assert_comparable(const array<M>& other) {
+                if (this->m_len != other.length()) {
+                    throw std::invalid_argument("Arrays of incomparable lengths (" +
+                            std::to_string(this->m_len) + " and " +
+                            std::to_string(other.length()) + ")");
+                }
+            }
     };
 }
 

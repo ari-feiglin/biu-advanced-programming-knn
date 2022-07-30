@@ -100,6 +100,8 @@ namespace knn {
     void all_distances(std::string classified, std::string unclassified, int k,
             T (*converter)(std::string), misc::array<std::string> output_names,
             misc::array<M (*)(const DataPoint<misc::array<T>>*, const DataPoint<misc::array<T>>*)> distances) {
+        output_names.assert_comparable(distances);
+
         std::ifstream classified_stream;
         classified_stream.open(classified);
     

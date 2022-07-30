@@ -91,13 +91,7 @@ namespace knn {
              * @return                  A reference to this Data Set.
              */
             DataSet& add(const DataPoint<T>* data_point);
-            /**
-             * Remove a Data Point from the Data Set.
-             * @param index        The point to remove from the set.
-             * @return                  A reference to this Data Set.
-             */
             
-            DataSet& remove(int index);
             /**
              * Gets the k-nearest neighbors to another input Data Point.
              * @param k             The k-value to run the algorithm on.
@@ -129,7 +123,7 @@ namespace knn {
                 M distance;
 
                 DistancePoint(int i, M d) : index(i), distance(d) {}
-                int operator<(DistancePoint<M> other) { return this->distance < other.distance; }
+                int operator<(DistancePoint<M> other) const { return this->distance < other.distance; }
             };
 
             /**

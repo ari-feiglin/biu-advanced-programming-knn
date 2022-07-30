@@ -5,7 +5,7 @@ INCLUDE_DIR = include
 LIB_DIR = lib
 OBJ_DIR = build
 
-CFLAGS = -g -I$(LIB_DIR) -I$(INCLUDE_DIR)
+CFLAGS = -g -std=c++11 -I$(LIB_DIR) -I$(INCLUDE_DIR)
 
 DEPS = $(wildcard $(LIB_DIR)/*.tpp) $(wildcard $(INCLUDE_DIR)/*.h)
 _OBJ = $(wildcard $(SRC_DIR)/*.cpp)
