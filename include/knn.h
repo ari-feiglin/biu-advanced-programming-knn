@@ -11,3 +11,5 @@
 #include "knn-algo.h"
 #include "knn-datastructs.h"
 #include "distances.h"
+#include "knn-io.h"
+

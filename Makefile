@@ -1,35 +1,26 @@
 PROJECT_NAME = knn
 CC = g++
-SRC_DIR = ./src
-L_DIR = ./lib
-INCLUDE_DIR = ./include
-BUILD_DIR = ./build
+SRC_DIR = src
+INCLUDE_DIR = include
+LIB_DIR = lib
+OBJ_DIR = build
 
-CFLAGS = -std=c++11 -Wall $(patsubst %,-I%,$(INCLUDE_DIR))
+CFLAGS = -g -I$(LIB_DIR) -I$(INCLUDE_DIR)
 
-DEPS = $(wildcard $(INCLUDE_DIR)/*.h)
+DEPS = $(wildcard $(LIB_DIR)/*.tpp) $(wildcard $(INCLUDE_DIR)/*.h)
+_OBJ = $(wildcard $(SRC_DIR)/*.cpp)
+OBJ  = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(_OBJ))
 
-_SOBJ = $(wildcard $(SRC_DIR)/*.cpp)
-SOBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(_SOBJ))
+all: $(PROJECT_NAME)
 
-_LOBJ = $(wildcard $(L_DIR)/*.cpp)
-LOBJ = $(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(_LOBJ))
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
+	$(CC) -c $(CFLAGS) $< -o $@
 
-#all: $(PROJECT_NAME)
-
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(DEPS)
-	@mkdir $(BUILD_DIR)
-	$(CC) -c -g $(CFLAGS) $< -o $@
-
-$(BUILD_DIR)/%.o: $(LIB_DIR)/%.c $(DEPS)
-	$(CC) -c -g $(CFLAGS) $< -o $@
-
-
-$(PROJECT_NAME): $(SOBJ) $(LOBG)
-	$(CC) -g $(CFLAGS) $^ -o $@
+$(PROJECT_NAME): $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ_DIR)/*.o -o $@
 
 clean:
-	rm $(BUILD_DIR)/*.o
+	rm $(OBJ_DIR)/*.o
 
 .PHONY: all clean
 

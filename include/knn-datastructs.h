@@ -145,69 +145,7 @@ namespace knn {
                return distances;
             }
     };
-
-    /**
-     * Classifies points relative to different distances.
-     * @param classified            File name of classified points to initialize a Data Set with.
-     * @param unclassified          File name of unclassified points to classify.
-     * @param k                     The k to use in quickselect.
-     * @param converter             Converter from string to correct datatype (T).
-     * @param output_names          Names of output files.
-     * @param distances             Array of distance functions.
-     *//*
-    template <typename T, typename M>
-    void all_distances(std::string classified, std::string unclassified, int k,
-            T (*converter)(std::string), misc::array<std::string> output_names,
-            misc::array<M (*)(const DataPoint<misc::array<T>>&, const DataPoint<misc::array<T>>&)> distances);*/
-
-template <typename T>
-DataSet<T>& DataSet<T>::add(const DataPoint<T>* data_point) {
-    DataPoint<T>* new_point = data_point->clone();
-    this->m_data.push_back(new_point);
-    return *this;
 }
 
-template <typename T>
-template <typename M>
-DataPoint<T>** DataSet<T>::get_k_nearest(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const {
-    std::vector<DistancePoint<M>> selected_distances = quickselect<DistancePoint<M>>(this->transform_data(p, distance), k);
-    DataPoint<T>** selected_points = new DataPoint<T>*[k];
-
-    for (int i = 0; i < k; i++) {
-        DataPoint<T>* new_point = this->m_data[selected_distances[i].index]->clone();
-        selected_points[i] = new_point;
-    }
-    
-    return selected_points;
-}
-
-template <typename T>
-template <typename M>
-std::string DataSet<T>::get_nearest_class(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const {
-    std::unordered_map<std::string, int> classes;
-    DataPoint<T>** selected_points = this->get_k_nearest(k, p, distance);
-
-    for (int i = 0; i < k; i++) {
-        if (classes.find(selected_points[i]->class_type()) == classes.end()) {
-            classes[selected_points[i]->class_type()] = 1;
-        } else {
-            classes[selected_points[i]->class_type()]++;
-        }
-        delete selected_points[i];
-    }
-
-    int max_count = 0;
-    std::string max_string;
-
-    for (auto entry : classes) {
-        if (entry.second > max_count) {
-            max_string = entry.first;
-            max_count = entry.second;
-        }
-    }
-
-    return max_string;
-}
-
-}
+#include "knn-datastructs.tpp"
 

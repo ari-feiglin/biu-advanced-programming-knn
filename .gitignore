@@ -8,3 +8,5 @@ knn
 .vscode/settings.json
 *.csv
 *.txt
+*.out
+build/*

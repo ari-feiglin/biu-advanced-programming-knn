@@ -1,8 +1,4 @@
-#include "distances.h"
-#include "misc.h"
 #include "knn.h"
-#include <cmath>
-
 
 namespace distances {
     
@@ -13,8 +9,7 @@ namespace distances {
         for(int i = 0; i < 4; i++){ //we know there are only 4 values of data in the arrays.
             retVal += (p1Data[i] - p2Data[i]) * (p1Data[i] - p2Data[i]);
         } 
-        retVal = sqrt(retVal);
-        return retVal;
+        return retVal;  // Don't need to take sqrt since sqrt(x) < sqrt(y) iff x < y
     }
 
     double chebyshev_distance(const knn::DataPoint<misc::array<double>>* p1, const knn::DataPoint<misc::array<double>>* p2) {
