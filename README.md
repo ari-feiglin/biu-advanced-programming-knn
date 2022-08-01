@@ -8,8 +8,11 @@ The Makefile compiles the program into an executable called `knn`.
 Compiling is simple, simply run:
 
 ```bash
+$ mkdir build
 $ make
 ```
+
+> Note: If `g++` is not installed, then in the second line of the [Makefile](./Makefile), change the line: `CC = g++` to `CC = <your compiler>`
 
 To run `knn`, pass a k value to the executable, for example 3:
 
