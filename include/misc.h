@@ -10,9 +10,9 @@ namespace misc {
      * it.
      */
     template <typename T>
-    class array {
+    class array : streams::Serializable {
         T * m_arr;
-        int m_len;
+        size_t m_len;
 
         /**
          * Helper method for constructing an array.
@@ -118,6 +118,15 @@ namespace misc {
                 }
             }
 
+            array(T* arr, size_t size) {
+                delete[] this->m_arr;
+                this->m_arr = new T[size];
+
+                for (int i = 0; i < size; i++) {
+                    this->m_arr[i] = arr[i];
+                }
+            }
+
             /**
              * Destructor.
              */
@@ -134,7 +143,7 @@ namespace misc {
             /**
              * @return The length of the array.
              */
-            int length() const { return this->m_len; }
+            size_t length() const { return this->m_len; }
 
             /**
              * Check if two arrays have the same length, throw an exception if they don't.
@@ -142,11 +151,47 @@ namespace misc {
              * @throws          std::invalid_argument if the arrays differ in length.
              */
             template <typename M>
-            void assert_comparable(const array<M>& other) {
+            void assert_comparable(const array<M>& other) const {
                 if (this->m_len != other.length()) {
                     throw std::invalid_argument("Arrays of incomparable lengths (" +
                             std::to_string(this->m_len) + " and " +
                             std::to_string(other.length()) + ")");
+                }
+            }
+
+            void serialize(streams::Stream* s) const override {
+                streams::PrimitiveSerializable(this->m_len).serialize(s);
+                for(int i = 0; i < this->m_len; i++) {
+                    streams::Serializable::get_serializable(this->m_arr[i]).serialize(s);
+                }
+            }
+
+            /**
+             * Note that in order to deserialize this array, T must either be of a primitive type or of a Serializable type
+             * (but not PrimitiveSerializable or PointerSerializable).
+             * I really don't like the current implementation of this, hopefully I'll come up with a better method.
+             * I need to figure out a way to allow deserialize to return primitives as well. I may have to use templates, again.
+             */
+            misc::array<T> deserialize(streams::Stream* s) const override {
+                if (this->m_len <= 0) throw std::runtime_exception("array must provide template for deserialization (length > 0)");
+
+                size_t size;
+                streams::PrimitiveSerializable(size).deserialize(s);
+                if (size <= 0) return nullptr;
+                T* arr = T[size];
+
+                if (dynamic_cast<Serializable>(arr[0]) != nullptr) {    // T inherits from Serializable
+                    for (int i = 0; i < size; i++) {
+                        arr[i] = this->m_arr[0].deserialize(s);
+                    }
+                } else if (dynamic_cast<Serializable*>(arr[0]) != nullptr) {    // T is a pointer to a Serializable
+                    for (int i = 0; i < size; i++) {
+                        arr[i] = this->m_arr[0]->deserialize(s);
+                    }
+                } else {    // T must be a primitive
+                    for (int i = 0; i < size; i++) {
+                        streams::PrimitiveSerializable(arr[i]).deserialize(s);
+                    }
                 }
             }
     };

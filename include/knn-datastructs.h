@@ -7,7 +7,7 @@ namespace knn {
      * Interface class for Data Points which represent points of data in a Data Set.
      */
     template <typename T>
-    class DataPoint {
+    class DataPoint : Serializable {
         public:
             virtual ~DataPoint() =0;
 
@@ -64,6 +64,17 @@ namespace knn {
             std::string class_type() const override { return this->m_class_name; }
 
             const misc::array<T>& data() const override { return this->m_data; }
+
+            void serialize(Stream* s) const override {
+                this->m_data.serialize(s);
+                streams::serialize(this->m_class_name, s);
+            }
+
+            CartDataPoint<T> deserialize(Stream* s) const override {
+                misc::array<T> data = this->m_data.deserialize(s);
+                std::string class_name = streams::deserialize(s);
+                return CartDataPoint<T>(class_name, data);
+            }
     };
 
     /**
