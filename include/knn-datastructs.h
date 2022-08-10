@@ -81,7 +81,7 @@ namespace knn {
      * Class for storing a collection of data points and manipulating them.
      */
     template <typename T>
-    class DataSet {
+    class DataSet : streams::Serializable {
         std::vector<DataPoint<T>*> m_data;
 
         public:

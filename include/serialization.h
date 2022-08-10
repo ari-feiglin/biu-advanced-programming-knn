@@ -21,9 +21,10 @@ namespace streams {
              * @param s     The stream to receive from.
              * @return      A new serialized object.
              * @note        This function is defined as const since deserializing should always create a new instance.
-             *              The only exception to this is with PrimitiveSerializable and PointerSerializable.
+             *              The only exception to this is with PointerSerializable.
              */
-            virtual Serializable deserialize(Stream* s) const =0;
+            template <typename T = Serializable*>
+            virtual Serializable* deserialize(Stream* s) const =0;
 
             template <typename T>
             static PrimitiveSerializable<T> get_serializable(T p) { return PrimitiveSerializable(p); }
@@ -34,16 +35,32 @@ namespace streams {
             static Serializable get_serializable(Serializable& s) { return s; }
 
             static Serializable get_serializable(Serializable* s) { return *s; }
+
+            /**
+             * Assignment operator for serializables.
+             * @param obj       An object to receive the serialized object.
+             * @param s         The serialized object.
+             * @return          A reference to the new object / obj.
+             * @note            Normally this should be normal assignment.
+             * But for PrimitiveSerializables this assigns the stored value.
+             */
+            template <typename T>
+            friend T& operator<<=(T& obj, Serializable& s);
     };
 
     Serializable::~Serializable() { }
 
     template <typename T>
+    T& operator<<=(T& obj, Serializable& s) {
+        obj = s;
+    }
+
+    template <typename T>
     class PrimitiveSerializable : public Serializable {
-        T& m_prim;
+        T m_prim;
 
         public:
-            PrimitiveSerializable(T& p) : m_prim(p) { }
+            PrimitiveSerializable(T p) : m_prim(p) { }
 
             void serialize(Stream* s) override {
                 s->send(&this->m_prim, sizeof(this->m_prim));
@@ -51,9 +68,18 @@ namespace streams {
 
             Serializable deserialize(Stream* s) override {
                 this->m_prim = (T)s->receive(sizeof(T), true);
-                return nullptr;
+                return *this;
             }
+
+            template <typename T>
+            friend T& operator<<=(T& obj, PrimitiveSerializable<T>& s);
     };
+
+    template <typename T>
+    T& operator<<=(T& obj, PrimitiveSerializable<T>& s) {
+        obj = s.m_prim;
+        return obj;
+    }
 
     template <typename T>
     class PointerSerializable : public Serializable {
