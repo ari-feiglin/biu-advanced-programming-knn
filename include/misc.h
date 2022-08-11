@@ -162,7 +162,7 @@ namespace misc {
             void serialize(streams::Stream* s) const override {
                 streams::PrimitiveSerializable(this->m_len).serialize(s);
                 for(int i = 0; i < this->m_len; i++) {
-                    streams::Serializable::get_serializable(this->m_arr[i]).serialize(s);
+                    streams::Serializable::to_serializable(this->m_arr[i])->serialize(s);
                 }
             }
 
@@ -213,7 +213,7 @@ namespace misc {
                 T* arr = new T[size];
 
                 for (int i = 0; i < size; i++) {
-                    arr[i] <<= streams::Serializable::to_serializable(this->m_arr[0]).deserialize(s);
+                    arr[i] <<= streams::Serializable::to_serializable(this->m_arr[0])->deserialize(s);
                 }
 
                 return array(arr, size);
