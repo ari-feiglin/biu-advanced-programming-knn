@@ -1,161 +1,117 @@
-#pragma once
-
 #include "streams.h"
-
-/** MEMORY LEAKS FOR TO_SERIALIZABLE **/
-/** Also fix <<= in misc **/
 
 namespace streams {
     /**
-     * Interface for Objects which can be serialized onto streams.
+     * Class for serializing objects.
+     * In order to serialize objects o1,...,oN into a Stream stream and a Serializer serializer, do:
+     * serializer(stream) << o1 << ... << oN;
+     * And to deserialize:
+     * serializer(stream) >> o1 >> ... >> oN;
+     * If you'd like to deserialize a pointer p with n bytes, do:
+     * serializer(stream) >> SerializablePointer(p, n);
+     * Similar for serialization. So say you'd like to read the size of the pointer to deserialize and then deserialize, you can do:
+     * serializer(stream) >> n >> SerializablePointer(p, n);
      */
-    class Serializable {
-        public:
-            virtual ~Serializable() =0;
-
-            /**
-             * Serialize the object, sending it over a stream while doing so.
-             * @param s     The stream to write to.
-             */
-            virtual void serialize(Stream* s) const =0;
-
-            /**
-             * Deserializes an object from a stream.
-             * @param s     The stream to receive from.
-             * @return      A new serialized object.
-             * @note        This function is defined as const since deserializing should always create a new instance.
-             *              The only exception to this is with PointerSerializable.
-             */
-            virtual Serializable* deserialize(Stream* s) const =0;
-
-            template <typename T>
-            static PrimitiveSerializable<T>* to_serializable(T p) { return new PrimitiveSerializable(p); }
-
-            template <typename T>
-            static PointerSerializable<T>* to_serializable(T* p, size_t size) { return new PointerSerializable(p, size); }
-
-            static Serializable* to_serializable(Serializable& s) { return &s; }
-
-            static PointerSerializable<T>* to_serializable(Serializable* s) { return new PointerSerializable(s); }
-
-            /**
-             * Assignment operator for serializables.
-             * @param obj       An object to receive the serialized object.
-             * @param s         The serialized object.
-             * @return          A reference to the new object / obj.
-             * @note            Normally this should be normal assignment.
-             *                  But for PrimitiveSerializables this assigns the stored value.
-             */
-            template <typename T>
-            friend T& operator<<=(T& obj, Serializable& s);
-    };
-
-    Serializable::~Serializable() { }
-
-    template <typename T>
-    T& operator<<=(T& obj, Serializable& s) {
-        obj = s;
-        return obj;
-    }
-
-    template <typename T>
-    class PrimitiveSerializable : public Serializable {
-        T m_prim;
-
-        public:
-            PrimitiveSerializable(T p) : m_prim(p) { }
-
-            void serialize(Stream* s) override {
-                s->send(&this->m_prim, sizeof(this->m_prim));
-            }
-
-            PrimitiveSerializable<T>* deserialize(Stream* s) override {
-                this->m_prim = s->receive<T>();
-                return this;
-            }
-
-            friend T& operator<<=(T& obj, PrimitiveSerializable<T>& s);
-    };
-
-    template <typename T>
-    T& operator<<=(T& obj, PrimitiveSerializable<T>& s) {
-        obj = s.m_prim;
-        return obj;
-    }
-
-    /**
-     * This class can store pointers, both pointers to primitives and pointers to Serializable objects.
-     */
-    template <typename T>
-    class PointerSerializable : public Serializable {
-        static size_t no_size = -1;
-        T* m_pointer;
-        size_t& m_size;
+    class Serializer {
+        Stream* m_stream;
 
         public:
             /**
-             * Construct Pointer Serializable object which stores the pointer of a Serializable object.
-             * @param p     A pointer to a serializable object.
+             * Construct a Serializer.
              */
-            PointerSerializable(T* p) : m_pointer(p), m_size(no_size) { }
+            Serializer() : m_stream(nullptr) { }
 
             /**
-             * Construct a Pointer Serializable object which stores a pointer to a primitive.
-             * @param p     A pointer to a primitive.
+             * Operator to set the current stream of the Serializer.
+             * @param s     The stream.
+             * @return      A reference to this.
              */
-            PointerSerializable(T* p, size_t& size) : m_pointer(p), m_size(size) { }
-
-            void serialize(Stream* s) const override {
-                if (this->m_size != -1) {
-                    s->send(&this->m_size, sizeof(this->m_size));
-                    s->send(this->m_pointer, this->m_size);
-                } else {
-                    this->m_pointer->serialize(s);
-                }
+            Serializer& operator()(Stream* s) {
+                this->m_stream = s;
+                return *this;
             }
 
-            PointerSerializable<T>* deserialize(Stream* s) const override {
-                if (this->m_size != -1) {
-                    this->m_size = s->receive<size_t>();
-                    this->m_pointer = new T[this->m_size];
-                    this->m_pointer = (T*)s->receive(this->m_size, true);
-                } else {
-                    this->m_pointer = this->m_pointer->deserialize(s);
-                }
-
-                return this;
+            /**
+             * Gets the current stream in use.
+             * @return      The current stream in use.
+             */
+            Stream* stream() {
+                return this->m_stream;
             }
+    };
 
-            friend T*& operator<<=(T*& obj, PointerSerializable<T>& ps);
+    extern thread_local Serializer serializer;
+
+    /** Serialization for primitive types (int, char, etc. NOT pointers) **/
+
+    template <typename T>
+    Serializer& operator<<(Serializer& s, const T prim) {
+        s.stream->send(&prim, sizeof(prim));
+        return s;
+    }
+
+    template <typename T>
+    Serializer& operator>>(Serializer& s, T& prim) {
+        prim = s.stream()->receive<T>();
+        return s;
+    }
+
+    /** Serialization for primitive pointer types **/
+    
+    /**
+     * Struct for storing a pointer and its size.
+     */
+    template <typename T>
+    struct SerializablePointer {
+        T*& pointer;
+        size_t& size;
+
+        SerializablePointer(T*& p, size_t& s) : pointer(p), size(s) { }
+
+        /**
+         * Allocate the proper memory for the pointer.
+         * @return      A reference to this.
+         * The purpose of this is so you can do something like:
+         * s >> size >> SerializablePointer(pointer, size).allocate();
+         * Which will deserialize and then allocate the proper space for pointer.
+         */
+        SerializablePointer<T>& allocate() {
+            this->pointer = new T[this->size];
+            return *this;
+        }
     };
 
     template <typename T>
-    T*& operator<<=(T*& obj, PointerSerializable<T>& ps) {
-        obj = ps.m_pointer;
-        return obj;
+    Serializer& operator<<(Serializer& s, const SerializablePointer<T> sp) {
+        s.stream()->send(sp.pointer, sp.size);
+        return s;
     }
 
-    /**
-     * Serialize a string.
-     * @param str       The string to serialize.
-     * @param s         The stream to serialize into.
-     */
-    inline void serialize(std::string str, Stream* s) {
-        char* cstr = str.cstr();
-        size_t size = str.length();
-        PointerSerializable(cstr, size).serialize(s);
+    template <typename T>
+    Serializer& operator>>(Serializer& s, SerializablePointer<T>& sp) {
+        s.stream()->receive(sp.pointer, sp.size);
+        return s;
     }
 
-    /**
-     * Deserialize a string.
-     * @param s     The stream to deserialize from.
-     * @return      A string.
-     */
-    inline std::string deserialize(Stream* s) {
-        char* cstr;
-        size_t size;
-        PointerSerializable(cstr, size).deserialize(s);
-        return std::string(cstr, size);
+    /** Serialization for serializable object pointers **/
+    /** The template types here refer to classes which have implemented the serialization and deserialization methods (<< and >>) **/
+
+    template <typename T>
+    Serializer& operator<<(Serializer& s, const T* p) {
+        return s << *p;
     }
+
+    template <typename T>
+    Serializer& operator>>(Serializer& s, T*& p) {
+        /* If p is null, then allocate memory for it */
+        if (p == nullptr) {
+            p = new T();
+        }
+
+        return s >> *p;
+    }
+
+    Serializer& operator<<(Serializer& s, const std::string str);
+    Serializer& operator>>(Serializer& s, std::string& str);
 }
 

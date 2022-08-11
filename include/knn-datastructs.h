@@ -36,10 +36,12 @@ namespace knn {
      */
     template <typename T>
     class CartDataPoint : public DataPoint<misc::array<T>> {
-        const misc::array<T> m_data;
+        misc::array<T> m_data;
         std::string m_class_name;
 
         public:
+            CartDataPoint() { }
+
             CartDataPoint(const CartDataPoint& other) :
                 m_data(other.m_data), m_class_name(other.m_class_name) { }
 
@@ -65,17 +67,19 @@ namespace knn {
 
             const misc::array<T>& data() const override { return this->m_data; }
 
-            void serialize(Stream* s) const override {
-                this->m_data.serialize(s);
-                streams::serialize(this->m_class_name, s);
-            }
-
-            CartDataPoint<T> deserialize(Stream* s) const override {
-                misc::array<T> data = this->m_data.deserialize(s);
-                std::string class_name = streams::deserialize(s);
-                return CartDataPoint<T>(class_name, data);
-            }
+            friend streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<T>& cdp);
+            friend streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<T>& cdp);
     };
+
+    template <typename T>
+    streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<T>& cdp) {
+        s << cdp.m_data << cdp.m_class_name;
+    }
+
+    template <typename T>
+    streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<T>& cdp) {
+        s >> cdp.m_data >> cdp.m_class_name;
+    }
 
     /**
      * Class for storing a collection of data points and manipulating them.
