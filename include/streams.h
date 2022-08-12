@@ -60,7 +60,7 @@ namespace streams {
              * @param ip        The ip to bind to.
              * @param port      The port to bind to.
              */
-            TCPSocket(std::string ip, int port=0);
+            TCPSocket(const char* ip, int port=0);
 
             /**
              * Construct a TCP socket, bind, and connect.
@@ -69,12 +69,12 @@ namespace streams {
              * @param dest_ip       The ip to connect to.
              * @param dest_port     The port to connect to.
              */
-            TCPSocket(std::string ip, int port, std::string dest_ip, int dest_port);
+            TCPSocket(const char*  ip, int port, const char*  dest_ip, int dest_port);
 
             /**
              * Wrapper around C's listen function (literally just call listen(this->fd, buffer))
              */
-            void listen(int buffer);
+            void listening(int buffer);
 
             /**
              * Accept a connection request.
@@ -87,7 +87,7 @@ namespace streams {
              * @param ip        The ip to connect to.
              * @param port      The port to connect to.
              */
-            void connect(std::string ip, int port);
+            void connect(const char*  ip, int port);
     };
 
     class UDPSocket : public Stream {
@@ -100,14 +100,14 @@ namespace streams {
              * @param ip        The ip to bind to.
              * @param port      The port to bind to.
              */
-            UDPSocket(std::string ip, int port);
+            UDPSocket(const char*  ip, int port);
 
             /**
              * Sets the destination and source for subsequent calls to send and receive.
              * @param ip        The remote ip to set as the destination/source ip.
              * @param port      The port to set as the destination/source port.
              */
-            void set_other(std::string ip, int port);
+            void set_other(const char*  ip, int port);
 
             /** If you want to, maybe also overload Stream's send and receive functions so they can also take as arguments the destination/source address. **/
     };
