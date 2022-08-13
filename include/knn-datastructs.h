@@ -94,6 +94,10 @@ namespace knn {
              */
             DataSet() {}
 
+            DataSet(std::vector<DataPoint<T>*>& arr) : m_arr(arr) { }
+
+            DataSet(std::vector<DataPoint<T>*>&& arr) : m_arr(arr) { }
+
             ~DataSet() {
                 for (DataPoint<T>* p : this->m_data) {
                     delete p;
