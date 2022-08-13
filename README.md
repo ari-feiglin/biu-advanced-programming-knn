@@ -1,6 +1,9 @@
 # BIU Advanced Programming Assignment Submission
 **Ari Feiglin, Gal Nemetsky**
 
+The current branch has the source for the second assignment.
+For the first assignment's source, please navigate to the `assignment1-submission` branch.
+
 ## Compiling and Running The Project
 
 We have provided you with a [Makefile](./Makefile) for your (and our) comfort.

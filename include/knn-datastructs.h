@@ -7,7 +7,7 @@ namespace knn {
      * Interface class for Data Points which represent points of data in a Data Set.
      */
     template <typename T>
-    class DataPoint {
+    class DataPoint : Serializable {
         public:
             virtual ~DataPoint() =0;
 
@@ -36,10 +36,12 @@ namespace knn {
      */
     template <typename T>
     class CartDataPoint : public DataPoint<misc::array<T>> {
-        const misc::array<T> m_data;
+        misc::array<T> m_data;
         std::string m_class_name;
 
         public:
+            CartDataPoint() { }
+
             CartDataPoint(const CartDataPoint& other) :
                 m_data(other.m_data), m_class_name(other.m_class_name) { }
 
@@ -64,13 +66,26 @@ namespace knn {
             std::string class_type() const override { return this->m_class_name; }
 
             const misc::array<T>& data() const override { return this->m_data; }
+
+            friend streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<T>& cdp);
+            friend streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<T>& cdp);
     };
+
+    template <typename T>
+    streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<T>& cdp) {
+        s << cdp.m_data << cdp.m_class_name;
+    }
+
+    template <typename T>
+    streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<T>& cdp) {
+        s >> cdp.m_data >> cdp.m_class_name;
+    }
 
     /**
      * Class for storing a collection of data points and manipulating them.
      */
     template <typename T>
-    class DataSet {
+    class DataSet : streams::Serializable {
         std::vector<DataPoint<T>*> m_data;
 
         public:
@@ -78,6 +93,10 @@ namespace knn {
              * Default constructor for DataSet.
              */
             DataSet() {}
+
+            DataSet(std::vector<DataPoint<T>*>& arr) : m_arr(arr) { }
+
+            DataSet(std::vector<DataPoint<T>*>&& arr) : m_arr(arr) { }
 
             ~DataSet() {
                 for (DataPoint<T>* p : this->m_data) {
