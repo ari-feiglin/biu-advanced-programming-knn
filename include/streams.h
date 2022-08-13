@@ -18,14 +18,14 @@ namespace streams {
          * @return                  A pointer to the data read.
          * @note                    If force_size is false, then change size to the number of bytes actually sent.
          */
-        virtual void* receive(size_t& size, bool force_size=true) =0;
+        virtual char* receive(size_t& size, bool force_size=true) =0;
 
         /**
          * Overload the receive function for rvalues.
          * @param size      The size of the data to receive.
          * @return          The data received.
          */
-        virtual void* receive(size_t&& size) {
+        void* receive(size_t&& size) {
             size_t s = size;
             return this->receive(s);
         }
@@ -54,6 +54,13 @@ namespace streams {
     class TCPSocket : public Stream {
         int fd;
 
+        /**
+         * Constructor for creating TCP sockets out of file descriptors.
+         * This should only be called by a method like accept_connection.
+         * @param socket_fd     The file descriptor to use.
+         */
+        TCPSocket(int socket_fd) : fd(socket_fd) { }
+
         public:
             /**
              * Construct a TCP socket (also binds the socket).
@@ -80,7 +87,7 @@ namespace streams {
              * Accept a connection request.
              * @return      The socket which connected.
              */
-            TCPSocket accept_request();
+            TCPSocket accept_connection();
 
             /**
              * Connect to a remote socket.
@@ -89,16 +96,35 @@ namespace streams {
              */
             void connect_to(const char*  ip, int port);
 
-            void* receive(size_t& size, bool force_size=true);
+            void* receive(size_t& size, bool force_size=true) override;
 
             template <typename T>
-            T receive();
+            T receive() override {
+                T primitive;
+                int bytes_read = 0;
+                int i = 0;
 
-            void send(void* data, size_t size);
+                while (i < sizeof(primitive)) {
+                    bytes_read = recv(this->fd, &primitive + i, sizeof(primitive) - i);
+
+                    if (bytes_read < 0) {
+                        throw std::ios_base::failure("error encountered while receiving from socket, errno: " +
+                                std::to_string(errno));
+
+                    } else if (bytes_read == 0) {
+                        throw std::ios_base::failure("socket closed before forced reception of data");
+                    }
+
+                    i += bytes_read;
+                }
+
+                return primitive;
+            }
+
+            void send(void* data, size_t size) override;
     };
 
-
-
+    #ifdef DEF_UDP
     // no need for UDP yet. 
     class UDPSocket : public Stream {
         int fd;
@@ -121,4 +147,5 @@ namespace streams {
 
             /** If you want to, maybe also overload Stream's send and receive functions so they can also take as arguments the destination/source address. **/
     };
+    #endif
 }
