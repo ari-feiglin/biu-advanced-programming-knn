@@ -43,7 +43,7 @@ namespace streams {
         }
     }
 
-    TCPSocket TCPSocket::acceptRequest() {
+    TCPSocket TCPSocket::accept_request() {
         struct sockaddr_in client;
         unsigned int addr_len = sizeof(client);
         int client_sock = accept(this->fd,  (struct sockaddr *) &client,  &addr_len);
@@ -66,7 +66,7 @@ namespace streams {
 
 
     // client
-    void TCPSocket::connectTo(const char*  ip, int port) {
+    void TCPSocket::connect_to(const char*  ip, int port) {
         struct sockaddr_in dest;
         memset(&dest, 0, sizeof(dest));
         dest.sin_family = AF_INET;
@@ -82,7 +82,7 @@ namespace streams {
 
     TCPSocket::TCPSocket(const char*  ip, int port, const char*  dest_ip, int dest_port) {
             this->fd = TCPSocket(ip, port).fd;
-            connectTo(dest_ip, dest_port);
+            connect_to(dest_ip, dest_port);
     }
     // end of client
     

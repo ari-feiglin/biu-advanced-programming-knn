@@ -80,14 +80,14 @@ namespace streams {
              * Accept a connection request.
              * @return      The socket which connected.
              */
-            TCPSocket acceptRequest();
+            TCPSocket accept_request();
 
             /**
              * Connect to a remote socket.
              * @param ip        The ip to connect to.
              * @param port      The port to connect to.
              */
-            void connectTo(const char*  ip, int port);
+            void connect_to(const char*  ip, int port);
 
             void* receive(size_t& size, bool force_size=true);
 
