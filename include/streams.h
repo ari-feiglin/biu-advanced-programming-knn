@@ -80,16 +80,26 @@ namespace streams {
              * Accept a connection request.
              * @return      The socket which connected.
              */
-            TCPSocket accept();
+            TCPSocket acceptRequest();
 
             /**
              * Connect to a remote socket.
              * @param ip        The ip to connect to.
              * @param port      The port to connect to.
              */
-            void connect(const char*  ip, int port);
+            void connectTo(const char*  ip, int port);
+
+            void* receive(size_t& size, bool force_size=true);
+
+            template <typename T>
+            T receive();
+
+            void send(void* data, size_t size);
     };
 
+
+
+    // no need for UDP yet. 
     class UDPSocket : public Stream {
         int fd;
         struct sockaddr_in other;
