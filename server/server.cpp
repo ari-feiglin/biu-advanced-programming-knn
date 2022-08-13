@@ -23,11 +23,6 @@ int main(int argc, char** argv) {
     while (true) {
         TCPSocket client = server.accept_connection();
 
-        int num_data_points;
-        serializer(client) >> num_data_points;
-
-        misc::array<std::string> arr(num_data_points);
-
         while (true) {
             CartDataPoint<double> data_point;
 
