@@ -21,7 +21,7 @@ namespace streams {
     TCPSocket::TCPSocket(const char* ip, int port=0) {
         this->fd = socket(AF_INET, SOCK_STREAM, 0);
         if (this->fd < 0) {
-            std::cerr << "error creating socket" << std::endl;
+            perror("error creating socket");
             return;
         }
         struct sockaddr_in hint;
@@ -31,14 +31,14 @@ namespace streams {
         inet_pton(AF_INET, ip, &hint.sin_addr);
         
         if (bind(this->fd, (struct sockaddr *) &hint, sizeof(hint)) < 0) {
-            std::cerr << "error binding socket" << std::endl;
+            perror("error binding socket");
             return;
         }
     }
     
     void TCPSocket::listening(int buffer) {
         if(listen(this->fd, buffer) < 0) {
-            std::cerr << "error listening to a socket" << std::endl;
+            perror("error listening to a socket");
             return;
         }
     }
@@ -48,7 +48,7 @@ namespace streams {
         unsigned int addr_len = sizeof(client);
         int client_sock = accept(this->fd,  (struct sockaddr *) &client,  &addr_len);
         if (client_sock < 0) {
-            std::cerr << "error accepting client" << std::endl;
+            perror("error accepting client");
             return;
         }
         // closing listening socket (? [not sure if im supposed to])
@@ -75,7 +75,7 @@ namespace streams {
         
     
         if(connect(this->fd, (struct sockaddr *) &dest, sizeof(dest)) < 0) {
-            std::cerr << "error connecting to server" << std::endl;
+            perror("error connecting to server");
             return;
         }
     }
