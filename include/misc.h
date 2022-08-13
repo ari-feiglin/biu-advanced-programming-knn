@@ -119,12 +119,15 @@ namespace misc {
             }
 
             array(T* arr, size_t size) {
-                delete[] this->m_arr;
                 this->m_arr = new T[size];
 
                 for (int i = 0; i < size; i++) {
                     this->m_arr[i] = arr[i];
                 }
+            }
+
+            array(size_t size) {
+                this->m_arr = new T[size];
             }
 
             /**

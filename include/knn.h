@@ -12,4 +12,6 @@
 #include "knn-datastructs.h"
 #include "distances.h"
 #include "knn-io.h"
+#include "streams.h"
+#include "serialization.h"
 

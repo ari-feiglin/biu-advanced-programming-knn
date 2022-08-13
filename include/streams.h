@@ -49,7 +49,19 @@ namespace streams {
          * @note            This should ensure that the correct amount of bytes were sent.
          */
         virtual void send(void* data, size_t size) =0;
+
+        /**
+         * Closes the stream.
+         */
+        virtual void close() =0;
+
+        /**
+         * The destructor also closes the stream.
+         */
+        virtual ~Stream() =0;
     };
+
+    Stream::~Stream() { this->close(); }
 
     class TCPSocket : public Stream {
         int fd;
@@ -122,6 +134,8 @@ namespace streams {
             }
 
             void send(void* data, size_t size) override;
+
+            void close() override;
     };
 
     #ifdef DEF_UDP

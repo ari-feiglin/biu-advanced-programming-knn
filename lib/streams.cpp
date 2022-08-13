@@ -87,7 +87,8 @@ namespace streams {
                             std::to_string(errno));
 
                 } else if (bytes_read == 0) {
-                    throw std::ios_base::failure("socket closed before forced reception of data");
+                    //throw std::ios_base::failure("socket closed before forced reception of data");
+                    return nullptr;
                 }
 
                 i += bytes_read;
@@ -106,6 +107,13 @@ namespace streams {
 
     void TCPSocket::send(std::string str) {
         this->send(str.c_str(), str.length() + 1);
+    }
+
+    void TCPSocket::close() {
+        if (close(this->fd) < 0) {
+            throw std::ios_base::failure("error encountered while closing socket, errno: " +
+                    std::to_string(errno));
+        }
     }
 
     // client

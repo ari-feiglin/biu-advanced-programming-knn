@@ -113,5 +113,30 @@ namespace streams {
 
     Serializer& operator<<(Serializer& s, const std::string str);
     Serializer& operator>>(Serializer& s, std::string& str);
+
+    template <typename T>
+    Serializer& operator<<(Serializer& s, const std::vector<T> vec) {
+        s << (size_t)vec.size();
+        
+        for (T val : vec) {
+            s << vec;
+        }
+
+        return s;
+    }
+
+    template <typename T>
+    Serializer& operator>>(Serializer& s, std::vector<T>& vec) {
+        size_t size;
+        s >> size;
+
+        for (int i = 0; i < size; i++) {
+            T val;
+            s >> val;
+            vec.push_back(val);
+        }
+
+        return s;
+    }
 }
 
