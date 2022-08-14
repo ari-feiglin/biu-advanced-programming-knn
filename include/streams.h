@@ -25,7 +25,7 @@ namespace streams {
          * @param size      The size of the data to receive.
          * @return          The data received.
          */
-        void* receive(size_t&& size) {
+        char* receive(size_t&& size) {
             size_t s = size;
             return this->receive(s);
         }
@@ -90,6 +90,10 @@ namespace streams {
              */
             TCPSocket(const char*  ip, int port, const char*  dest_ip, int dest_port);
 
+            TCPSocket(std::string ip, int port=0) : TCPSocket(ip.c_str(), port) { }
+            TCPSocket(std::string ip, int port, std::string dest_ip, int dest_port) :
+                TCPSocket(ip.c_str(), port, dest_ip.c_str(), dest_port) { }
+
             /**
              * Wrapper around C's listen function (literally just call listen(this->fd, buffer))
              */
@@ -106,9 +110,10 @@ namespace streams {
              * @param ip        The ip to connect to.
              * @param port      The port to connect to.
              */
-            void connect_to(const char*  ip, int port);
+            void connect_to(const char* ip, int port);
+            void connect_to(std::string ip, int port) { this->connect_to(ip.c_str(), port); }
 
-            void* receive(size_t& size, bool force_size=true) override;
+            char* receive(size_t& size, bool force_size=true) override;
 
             template <typename T>
             T receive() override {

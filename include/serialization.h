@@ -46,13 +46,13 @@ namespace streams {
 
     template <typename T>
     Serializer& operator<<(Serializer& s, const T prim) {
-        s.stream->send(&prim, sizeof(prim));
+        s.stream()->send(&prim, sizeof(prim));
         return s;
     }
 
     template <typename T>
     Serializer& operator>>(Serializer& s, T& prim) {
-        prim = s.stream()->receive<T>();
+        prim = s().stream()->receive<T>();
         return s;
     }
 
@@ -70,13 +70,17 @@ namespace streams {
 
         /**
          * Allocate the proper memory for the pointer.
+         * @param check     If true, only allocate if pointer is null.
          * @return      A reference to this.
          * The purpose of this is so you can do something like:
          * s >> size >> SerializablePointer(pointer, size).allocate();
          * Which will deserialize and then allocate the proper space for pointer.
          */
-        SerializablePointer<T>& allocate() {
-            this->pointer = new T[this->size];
+        SerializablePointer<T>& allocate(bool check=false) {
+            if (!check || this->pointer == nullptr) {
+                this->pointer = new T[this->size];
+            }
+
             return *this;
         }
     };

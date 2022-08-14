@@ -15,6 +15,7 @@ Serializer& operator>>(Serializer& s, std::string& str) {
 
     s >> n >> SerializablePointer(str, n).allocate();
     str = std::string(str, n);
+    delete[] str;
 
     return s;
 }

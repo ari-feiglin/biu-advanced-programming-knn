@@ -68,12 +68,12 @@ namespace streams {
         int bytes_read = 0;
 
         if (!force_size) {
-            bytes_read = recv(this->fd, data, size, 0);
+            size = recv(this->fd, data, size, 0);
 
-            if (bytes_read < 0) {
+            if (size < 0) {
                 throw std::ios_base::failure("error encountered while receiving from socket, errno: " +
                         std::to_string(errno));
-            } else if (bytes_read == 0) {       // Remote socket closed connection
+            } else if (size == 0) {       // Remote socket closed connection
                 return nullptr;
             }
         } else {
@@ -87,8 +87,7 @@ namespace streams {
                             std::to_string(errno));
 
                 } else if (bytes_read == 0) {
-                    //throw std::ios_base::failure("socket closed before forced reception of data");
-                    return nullptr;
+                    throw std::ios_base::failure("socket closed before forced reception of data");
                 }
 
                 i += bytes_read;
@@ -99,9 +98,16 @@ namespace streams {
     }
 
     void TCPSocket::send(void* data, size_t size) {
-        if (send(this->fd, data, size) < 0) {
-            throw std::ios_base::failure("error encountered while sending to socket, errno: " +
-                    std::to_string(errno));
+        int bytes_sent;
+        int i = 0;
+
+        while (i < size) {
+            bytes_sent = send(this->fd, data + i, size - i);
+            if (bytes_sent < 0) {
+                throw std::ios_base::failure("error encountered while sending to socket, errno: " +
+                        std::to_string(errno));
+            }
+            i += bytes_sent;
         }
     }
 
