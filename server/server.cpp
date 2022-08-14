@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
     TCPSocket server = TCPSocket(argv[1], strtol(argv[2], NULL, 0));
     server.listening(10);
-
+    
     while (true) {
         TCPSocket client = server.accept_connection();
         serializer(&client);
