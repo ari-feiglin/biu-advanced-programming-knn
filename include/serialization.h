@@ -1,3 +1,7 @@
+#pragma once
+
+#include <vector>
+
 #include "streams.h"
 
 namespace streams {
@@ -40,8 +44,6 @@ namespace streams {
             }
     };
 
-    extern thread_local Serializer serializer;
-
     /** Serialization for primitive types (int, char, etc. NOT pointers) **/
 
     template <typename T>
@@ -52,7 +54,7 @@ namespace streams {
 
     template <typename T>
     Serializer& operator>>(Serializer& s, T& prim) {
-        prim = s().stream()->receive<T>();
+        prim = s.stream()->receive<T>();
         return s;
     }
 
@@ -65,8 +67,11 @@ namespace streams {
     struct SerializablePointer {
         T*& pointer;
         size_t& size;
+        bool deserializable;
 
-        SerializablePointer(T*& p, size_t& s) : pointer(p), size(s) { }
+        SerializablePointer(T*& p, size_t& s) : pointer(p), size(s), deserializable(true) { }
+        SerializablePointer(const T*&& p, size_t s) :
+            pointer(SerializablePointer<T>::null_pointer), size(SerializablePointer<T>::no_size), deserializable(false) { }
 
         /**
          * Allocate the proper memory for the pointer.
@@ -77,12 +82,17 @@ namespace streams {
          * Which will deserialize and then allocate the proper space for pointer.
          */
         SerializablePointer<T>& allocate(bool check=false) {
+            if (!this->deserializable) throw std::invalid_argument("this SerializablePointer cannot be allocated");
             if (!check || this->pointer == nullptr) {
                 this->pointer = new T[this->size];
             }
 
             return *this;
         }
+
+        //private:
+            static T* null_pointer;
+            static size_t no_size;
     };
 
     template <typename T>
@@ -93,7 +103,8 @@ namespace streams {
 
     template <typename T>
     Serializer& operator>>(Serializer& s, SerializablePointer<T>& sp) {
-        s.stream()->receive(sp.pointer, sp.size);
+        if (!sp.deserializable) throw std::invalid_argument("cannot deserialize this SerializablePointer");
+        sp.pointer = s.stream()->receive(sp.size);
         return s;
     }
 
@@ -115,8 +126,21 @@ namespace streams {
         return s >> *p;
     }
 
-    Serializer& operator<<(Serializer& s, const std::string str);
-    Serializer& operator>>(Serializer& s, std::string& str);
+    inline Serializer& operator<<(Serializer& s, const std::string str) {
+        s << str.length() << streams::SerializablePointer<char>(str.c_str(), str.length());
+        return s;
+    }
+
+    inline Serializer& operator>>(Serializer& s, std::string& str) {
+        size_t n;
+        char* cstr;
+
+        s >> n >> SerializablePointer<char>(cstr, n).allocate();
+        str = std::string(str, n);
+        delete[] cstr;
+
+        return s;
+    }
 
     template <typename T>
     Serializer& operator<<(Serializer& s, const std::vector<T> vec) {
@@ -142,5 +166,7 @@ namespace streams {
 
         return s;
     }
+
+    //extern thread_local Serializer serializer;
 }
 

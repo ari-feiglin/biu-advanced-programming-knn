@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+#include <ios>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -7,7 +9,7 @@ namespace streams {
     /**
      * Interface representing a low level stream (file, socket, etc).
      */
-    class Stream {
+    struct Stream {
         /** NOTE: if there is an error when calling the function (recv/send returns -1, etc) these should throw exceptions! **/
 
         /**
@@ -33,14 +35,15 @@ namespace streams {
         /**
          * Receive a type from the Stream (eg. T may/should be a primitive like int or char).
          * @return      What was read from the stream.
-         * @note        A call to this overloaded receive method should have the same behavior as:
-         *              T* p = stream.receive(sizeof(T)); // It MUST read sizeof(T) bytes, and hence let force_size be.
-         *              T obj = *p;
-         *              delete[] p; // The void* returned from receive should be allocated.
          */
-        /** Note that template functions must be implemented in a header file (or a .tpp file and included in the header) **/
         template <typename T>
-        virtual T receive() =0;
+        T receive() {
+            T prim;
+            char* data = receive(sizeof(T));
+            prim = *(T*)data;
+            delete[] data;
+            return prim;
+        }
 
         /**
          * Send data through the stream.
@@ -48,7 +51,7 @@ namespace streams {
          * @param size      The size of the data to send.
          * @note            This should ensure that the correct amount of bytes were sent.
          */
-        virtual void send(void* data, size_t size) =0;
+        virtual void send(const void* data, size_t size) =0;
 
         /**
          * Closes the stream.
@@ -58,10 +61,9 @@ namespace streams {
         /**
          * The destructor also closes the stream.
          */
-        virtual ~Stream() =0;
+        /*virtual ~Stream() =0;*/
     };
 
-    Stream::~Stream() { this->close(); }
 
     class TCPSocket : public Stream {
         int fd;
@@ -94,6 +96,8 @@ namespace streams {
             TCPSocket(std::string ip, int port, std::string dest_ip, int dest_port) :
                 TCPSocket(ip.c_str(), port, dest_ip.c_str(), dest_port) { }
 
+            ~TCPSocket() { this->close(); }
+
             /**
              * Wrapper around C's listen function (literally just call listen(this->fd, buffer))
              */
@@ -115,7 +119,7 @@ namespace streams {
 
             char* receive(size_t& size, bool force_size=true) override;
 
-            template <typename T>
+            /*template <typename T>
             T receive() override {
                 T primitive;
                 int bytes_read = 0;
@@ -136,9 +140,9 @@ namespace streams {
                 }
 
                 return primitive;
-            }
+            }*/
 
-            void send(void* data, size_t size) override;
+            void send(const void* data, size_t size) override;
 
             void close() override;
     };

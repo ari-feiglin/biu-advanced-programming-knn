@@ -7,7 +7,7 @@ namespace knn {
      * Interface class for Data Points which represent points of data in a Data Set.
      */
     template <typename T>
-    class DataPoint : Serializable {
+    class DataPoint {
         public:
             virtual ~DataPoint() =0;
 
@@ -67,8 +67,10 @@ namespace knn {
 
             const misc::array<T>& data() const override { return this->m_data; }
 
-            friend streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<T>& cdp);
-            friend streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<T>& cdp);
+            template <typename M>
+            friend streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<M>& cdp);
+            template <typename M>
+            friend streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<M>& cdp);
     };
 
     template <typename T>
@@ -85,7 +87,7 @@ namespace knn {
      * Class for storing a collection of data points and manipulating them.
      */
     template <typename T>
-    class DataSet : streams::Serializable {
+    class DataSet {
         std::vector<DataPoint<T>*> m_data;
 
         public:
@@ -94,9 +96,9 @@ namespace knn {
              */
             DataSet() {}
 
-            DataSet(std::vector<DataPoint<T>*>& arr) : m_arr(arr) { }
+            DataSet(std::vector<DataPoint<T>*>& vec) : m_data(vec) { }
 
-            DataSet(std::vector<DataPoint<T>*>&& arr) : m_arr(arr) { }
+            DataSet(std::vector<DataPoint<T>*>&& vec) : m_data(vec) { }
 
             ~DataSet() {
                 for (DataPoint<T>* p : this->m_data) {

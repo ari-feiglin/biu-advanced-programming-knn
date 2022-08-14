@@ -9,10 +9,6 @@
 
 namespace streams {
     // server
-    TCPSocket::TCPSocket (int fd) {
-        this->fd;
-    }
-
     TCPSocket::TCPSocket(const char* ip, int port) {
         this->fd = socket(AF_INET, SOCK_STREAM, 0);
         if (this->fd < 0) {
@@ -80,7 +76,7 @@ namespace streams {
             int i = 0;
 
             while (i < size) {      // This will continue its loop until the number of bytes received equals the number requested.
-                bytes_read = recv(this->fd, data + i, size - i);
+                bytes_read = recv(this->fd, data + i, size - i, 0);
 
                 if (bytes_read < 0) {
                     throw std::ios_base::failure("error encountered while receiving from socket, errno: " +
@@ -97,12 +93,12 @@ namespace streams {
         return data;
     }
 
-    void TCPSocket::send(void* data, size_t size) {
+    void TCPSocket::send(const void* data, size_t size) {
         int bytes_sent;
         int i = 0;
 
         while (i < size) {
-            bytes_sent = send(this->fd, data + i, size - i);
+            bytes_sent = ::send(this->fd, (char*)data + i, size - i, 0);
             if (bytes_sent < 0) {
                 throw std::ios_base::failure("error encountered while sending to socket, errno: " +
                         std::to_string(errno));
@@ -111,12 +107,8 @@ namespace streams {
         }
     }
 
-    void TCPSocket::send(std::string str) {
-        this->send(str.c_str(), str.length() + 1);
-    }
-
     void TCPSocket::close() {
-        if (close(this->fd) < 0) {
+        if (::close(this->fd) < 0) {
             throw std::ios_base::failure("error encountered while closing socket, errno: " +
                     std::to_string(errno));
         }
@@ -138,8 +130,7 @@ namespace streams {
         }
     }
 
-    TCPSocket::TCPSocket(const char*  ip, int port, const char*  dest_ip, int dest_port) {
-            this->fd = TCPSocket(ip, port).fd;
+    TCPSocket::TCPSocket(const char*  ip, int port, const char*  dest_ip, int dest_port) : TCPSocket(ip, port) {
             connect_to(dest_ip, dest_port);
     }
     // end of client

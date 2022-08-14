@@ -1,15 +1,9 @@
+#pragma once
+
 #include <iostream>
 #include "knn.h"
 
-namespace {
-    /**
-     * Reads in a Cartesian Data Point from an input file stream.
-     * @param input_stream      The input stream.
-     * @param converter         Function to convert strings to the correct datatype.
-     * @param classified        If the Data Points in the file have classes.
-     * @return                  A Cartesian Data Point read from the stream.
-     *                          Returns null upon reaching the end of the stream.
-     */
+namespace knn {
     template <typename T>
     CartDataPoint<T>* read_point(std::ifstream& input_stream, T (*converter)(std::string), bool classified) {
         std::vector<T> data;
@@ -39,11 +33,6 @@ namespace {
         }
     }
     
-    /**
-     * Initializes a Data Set from an input file stream.
-     * @param input_stream      The input stream.
-     * @return                  A Data Set of Cartesian Data Points read from the stream.
-     */
     template <typename T>
     DataSet<misc::array<T>>* initialize_dataset(std::ifstream& input_stream, T (*converter)(std::string)) {
         DataSet<misc::array<T>>* dataset = new DataSet<misc::array<T>>();
@@ -56,7 +45,9 @@ namespace {
     
         return dataset;
     }
-    
+}
+
+namespace {
     /**
      * Writes the name of the closest class (among the k closest neighbors) to a point to an input file stream.
      * @param data_set          The Data Set to use for finding neighbors.
@@ -112,9 +103,9 @@ namespace knn {
             output_stream.open(output_names[i]);
             std::ifstream unclassified_stream;
             unclassified_stream.open(unclassified);
-    
+
             write_closest_classes<T,M>(*dataset, k, distances[i], unclassified_stream, output_stream, converter);
-    
+
             output_stream.close();
             unclassified_stream.close();
         }

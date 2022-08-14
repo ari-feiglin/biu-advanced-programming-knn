@@ -1,6 +1,9 @@
 #pragma once
 #include <iostream>
 
+#include "streams.h"
+#include "serialization.h"
+
 namespace misc {
     
     /**
@@ -10,7 +13,7 @@ namespace misc {
      * it.
      */
     template <typename T>
-    class array : streams::Serializable {
+    class array {
         T * m_arr;
         size_t m_len;
 
@@ -162,20 +165,15 @@ namespace misc {
                 }
             }
 
-            void serialize(streams::Stream* s) const override {
-                streams::PrimitiveSerializable(this->m_len).serialize(s);
-                for(int i = 0; i < this->m_len; i++) {
-                    streams::Serializable::to_serializable(this->m_arr[i])->serialize(s);
-                }
-            }
-
-            friend streams::Serializable& operator<<(Serializable& s, const array<T> arr);
-            friend streams::Serializable& operator>>(Serializable& s, array<T> arr);
+            template <typename M>
+            friend streams::Serializer& operator<<(streams::Serializer& s, const array<M> arr);
+            template <typename M>
+            friend streams::Serializer& operator>>(streams::Serializer& s, array<M> arr);
     };
 
     /** Serialization for arrays **/
     template <typename T>
-    streams::Serializable& operator<<(Serializable& s, const array<T> arr) {
+    streams::Serializer& operator<<(streams::Serializer& s, const array<T> arr) {
         s << arr.m_len;
         for (int i = 0; i < arr.m_len; i++) {
             s << arr.m_arr[i];
@@ -185,7 +183,7 @@ namespace misc {
     }
 
     template <typename T>
-    streams::Serializable& operator>>(Serializable& s, array<T> arr) {
+    streams::Serializer& operator>>(streams::Serializer& s, array<T> arr) {
         s >> arr.m_len;
         for (int i = 0; i < arr.m_len; i++) {
             s >> arr.m_arr[i];
