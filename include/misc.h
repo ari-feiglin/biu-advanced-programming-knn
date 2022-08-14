@@ -122,6 +122,7 @@ namespace misc {
             }
 
             array(T* arr, size_t size) {
+                this->m_len = size;
                 this->m_arr = new T[size];
 
                 for (int i = 0; i < size; i++) {
@@ -130,6 +131,7 @@ namespace misc {
             }
 
             array(size_t size) {
+                this->m_len = size;
                 this->m_arr = new T[size];
             }
 
@@ -168,7 +170,7 @@ namespace misc {
             template <typename M>
             friend streams::Serializer& operator<<(streams::Serializer& s, const array<M> arr);
             template <typename M>
-            friend streams::Serializer& operator>>(streams::Serializer& s, array<M> arr);
+            friend streams::Serializer& operator>>(streams::Serializer& s, array<M>& arr);
     };
 
     /** Serialization for arrays **/
@@ -183,7 +185,7 @@ namespace misc {
     }
 
     template <typename T>
-    streams::Serializer& operator>>(streams::Serializer& s, array<T> arr) {
+    streams::Serializer& operator>>(streams::Serializer& s, array<T>& arr) {
         s >> arr.m_len;
         for (int i = 0; i < arr.m_len; i++) {
             s >> arr.m_arr[i];

@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
     
     while (true) {
         TCPSocket client = server.accept_connection();
+        Address addr = client.get_address();
+        std::cout << addr.ip << ":" << addr.port << " connected." << std::endl;
         serializer(&client);
 
         while (true) {
@@ -41,6 +43,8 @@ int main(int argc, char** argv) {
                 break;
             }
         }
+
+        std::cout << "Session with " << addr.ip << ":" << addr.port << " has ended." << std::endl;
     }
 }
 

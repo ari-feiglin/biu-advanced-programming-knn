@@ -5,9 +5,12 @@
 *.swo
 
 knn
+server/server
+client/client
 .vscode/settings.json
 *.csv
 *.txt
 *.out
 build/*
+*.o
 .vscode/c_cpp_properties.json

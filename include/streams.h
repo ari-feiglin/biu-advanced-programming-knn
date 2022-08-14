@@ -64,6 +64,10 @@ namespace streams {
         /*virtual ~Stream() =0;*/
     };
 
+    struct Address {
+        std::string ip;
+        int port;
+    };
 
     class TCPSocket : public Stream {
         int fd;
@@ -143,6 +147,8 @@ namespace streams {
             }*/
 
             void send(const void* data, size_t size) override;
+
+            Address get_address();
 
             void close() override;
     };

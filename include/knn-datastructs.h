@@ -75,12 +75,12 @@ namespace knn {
 
     template <typename T>
     streams::Serializer& operator<<(streams::Serializer& s, const CartDataPoint<T>& cdp) {
-        s << cdp.m_data << cdp.m_class_name;
+        return s << cdp.m_data << cdp.m_class_name;
     }
 
     template <typename T>
     streams::Serializer& operator>>(streams::Serializer& s, CartDataPoint<T>& cdp) {
-        s >> cdp.m_data >> cdp.m_class_name;
+        return s >> cdp.m_data >> cdp.m_class_name;
     }
 
     /**

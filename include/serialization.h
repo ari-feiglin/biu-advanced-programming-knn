@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 #include "streams.h"
 
@@ -67,11 +68,14 @@ namespace streams {
     struct SerializablePointer {
         T*& pointer;
         size_t& size;
+        const T* copy_pointer;
+        size_t copy_size;
         bool deserializable;
 
         SerializablePointer(T*& p, size_t& s) : pointer(p), size(s), deserializable(true) { }
         SerializablePointer(const T*&& p, size_t s) :
-            pointer(SerializablePointer<T>::null_pointer), size(SerializablePointer<T>::no_size), deserializable(false) { }
+            pointer(SerializablePointer<T>::null_pointer), size(SerializablePointer<T>::no_size),
+            copy_pointer(p), copy_size(s), deserializable(false) { }
 
         /**
          * Allocate the proper memory for the pointer.
@@ -97,7 +101,8 @@ namespace streams {
 
     template <typename T>
     Serializer& operator<<(Serializer& s, const SerializablePointer<T> sp) {
-        s.stream()->send(sp.pointer, sp.size);
+        if (sp.deserializable) s.stream()->send(sp.pointer, sp.size);
+        else s.stream()->send(sp.copy_pointer, sp.copy_size);
         return s;
     }
 
@@ -112,7 +117,7 @@ namespace streams {
     /** The template types here refer to classes which have implemented the serialization and deserialization methods (<< and >>) **/
 
     template <typename T>
-    Serializer& operator<<(Serializer& s, const T* p) {
+    Serializer& operator<<(Serializer& s, T* p) {
         return s << *p;
     }
 
@@ -135,9 +140,10 @@ namespace streams {
         size_t n;
         char* cstr;
 
-        s >> n >> SerializablePointer<char>(cstr, n).allocate();
-        str = std::string(str, n);
-        delete[] cstr;
+        s >> n;
+        s >> SerializablePointer<char>(cstr, n).allocate();
+        str = std::string(cstr, n);
+        if (n > 0) delete[] cstr;
 
         return s;
     }

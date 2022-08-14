@@ -134,5 +134,21 @@ namespace streams {
             connect_to(dest_ip, dest_port);
     }
     // end of client
+    
+    Address TCPSocket::get_address() {
+        struct sockaddr_in addr = {0};
+        socklen_t len = sizeof(addr);
+
+        if (getsockname(this->fd, (struct sockaddr*)&addr, &len) < 0) {
+            throw std::ios_base::failure("error encountered while getting socket name, errno: " +
+                    std::to_string(errno));
+        }
+
+        Address a;
+        a.ip = std::string(inet_ntoa(addr.sin_addr));
+        a.port = addr.sin_port;
+
+        return a;
+    }
 }
 
