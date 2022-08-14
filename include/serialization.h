@@ -87,7 +87,8 @@ namespace streams {
          */
         SerializablePointer<T>& allocate(bool check=false) {
             if (!this->deserializable) throw std::invalid_argument("this SerializablePointer cannot be allocated");
-            if (!check || this->pointer == nullptr) {
+            if (!check || this->size == 0) this->pointer = nullptr;
+            else if (!check || this->pointer == nullptr) {
                 this->pointer = new T[this->size];
             }
 

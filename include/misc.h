@@ -23,7 +23,7 @@ namespace misc {
          */
         void cont_helper(int n) {
             this->m_len = n;
-            this->m_arr = new T[n];
+            if (n > 0) this->m_arr = new T[n];
         }
 
         template <typename... R>
@@ -41,6 +41,8 @@ namespace misc {
             array(R... r) : m_len(0) {
                 cont_helper(0, r...);
             }
+
+            array() : m_len(0) { }
             
             /**
              * Copy constructor/assignment operator for array.
@@ -138,7 +140,12 @@ namespace misc {
             /**
              * Destructor.
              */
-            virtual ~array() { delete[] this->m_arr; }
+            ~array() {
+                if (this->m_len > 0) {
+                    delete[] this->m_arr;
+                }
+                this->m_len = 0;
+            }
 
             /**
              * Indexing operator.
@@ -186,7 +193,11 @@ namespace misc {
 
     template <typename T>
     streams::Serializer& operator>>(streams::Serializer& s, array<T>& arr) {
+        if (arr.m_len > 0) delete[] arr.m_arr;
         s >> arr.m_len;
+        std::cout << "\e[31mNew length\e[0m" << arr.m_len << std::endl;
+        arr.m_arr = new T[arr.m_len];
+
         for (int i = 0; i < arr.m_len; i++) {
             s >> arr.m_arr[i];
         }

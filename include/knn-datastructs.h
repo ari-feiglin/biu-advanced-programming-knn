@@ -57,7 +57,7 @@ namespace knn {
             CartDataPoint(std::string class_name, const misc::array<T> data) :
                 m_data(data), m_class_name(class_name) {}
 
-            ~CartDataPoint() {}
+            ~CartDataPoint() { }
 
             CartDataPoint* clone() const override {
                 return new CartDataPoint(*this);
@@ -101,8 +101,8 @@ namespace knn {
             DataSet(std::vector<DataPoint<T>*>&& vec) : m_data(vec) { }
 
             ~DataSet() {
-                for (DataPoint<T>* p : this->m_data) {
-                    delete p;
+                for (int i = 0; i < this->m_data.size(); i++) {
+                    delete this->m_data[i];
                 }
             }
 
