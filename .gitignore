@@ -5,8 +5,8 @@
 *.swo
 
 knn
-server/server
-client/client
+knnserver
+knnclient
 .vscode/settings.json
 *.csv
 *.txt

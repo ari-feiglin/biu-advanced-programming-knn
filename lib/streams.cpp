@@ -60,6 +60,8 @@ namespace streams {
     }
 
      char* TCPSocket::receive(size_t& size, bool force_size) {
+        if (size == 0) return nullptr;
+
         char* data = new char[size];
         int bytes_read = 0;
 
@@ -79,10 +81,12 @@ namespace streams {
                 bytes_read = recv(this->fd, data + i, size - i, 0);
 
                 if (bytes_read < 0) {
+                    delete[] data;
                     throw std::ios_base::failure("error encountered while receiving from socket, errno: " +
                             std::to_string(errno));
 
                 } else if (bytes_read == 0) {
+                    delete[] data;
                     throw std::ios_base::failure("socket closed before forced reception of data");
                 }
 

@@ -1,4 +1,5 @@
 #include "knn.h"
+#include "distances.h"
 #include <csignal>
 
 using namespace streams;
@@ -43,8 +44,8 @@ int main(int argc, char** argv) {
         std::cout << addr.ip << ":" << addr.port << " connected." << std::endl;
         serializer(&client);
 
+        knn::CartDataPoint<double> data_point;
         while (true) {
-            knn::CartDataPoint<double> data_point;
             /* If sending/receiving from client fails, assume disconnection and disconnect */
             try {
                 serializer >> data_point;

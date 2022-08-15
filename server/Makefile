@@ -1,9 +1,9 @@
-PROJECT_NAME = server
+PROJECT_NAME = ../knnserver
 CC = g++
 INCLUDE_DIR = include ../include
 SRC_DIR = .
 LIB_DIR = ../lib
-OBJ_DIR = build
+OBJ_DIR = ./build
 LIB_OBJ_DIR = ../build
 
 CFLAGS := -g -std=c++11 $(patsubst %,-I%,$(INCLUDE_DIR)) -I$(LIB_DIR)
@@ -17,12 +17,15 @@ SRC := $(LIB_SRC) $(SRC_SRC)
 #OBJ := $(patsubst $(LIB_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(wildcard $(LIB_DIR)/*.cpp)) $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(wildcard $(SRC_DIR)/*.cpp))
 OBJ := $(patsubst $(LIB_DIR)/%.cpp,$(LIB_OBJ_DIR)/%.o,$(LIB_SRC)) $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_SRC))
 
-all: $(PROJECT_NAME)
+all: $(OBJ_DIR) $(PROJECT_NAME)
 
 debug::
 	@echo "DEPS: $(DEPS)"
 	@echo "SRC: $(SRC)"
 	@echo "OBJ: $(OBJ)"
+
+$(OBJ_DIR):
+	mkdir $(OBJ_DIR)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
 	$(CC) -c $(CFLAGS) $< -o $@

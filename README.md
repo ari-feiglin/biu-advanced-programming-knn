@@ -7,35 +7,55 @@ For the first assignment's source, please navigate to the `assignment1-submissio
 ## Compiling and Running The Project
 
 We have provided you with a [Makefile](./Makefile) for your (and our) comfort.
-The Makefile compiles the program into an executable called `knn`.
-Compiling is simple, simply run:
+The Makefile compiles the program into two executables: `knnserver` and `knnclient`.
+Compiling is simple, simply run in the current directory (the one with this file):
 
 ```bash
-$ mkdir build
 $ make
 ```
 
-> Note: If `g++` is not installed, then in the second line of the [Makefile](./Makefile), change the line: `CC = g++` to `CC = <your compiler>`
+To run the `knnserver` you must provide the following command line arguments:
 
-To run `knn`, pass a k value to the executable, for example 3:
++ The server IP
++ The server port
++ The classified file (the csv file which contains data of already classified object)
++ And a k-value
+
+So for example running:
 
 ```bash
-$ ./knn 3
+$ ./knnserver 127.0.0.1 1234 ./classified.csv 3
 ```
 
-This will write output to the required `*_output.csv` files.
+Runs the `knnserver` on IP address `127.0.0.1` and port `1234`, gets the classified data from `./classified.csv` and runs the knn algorithm with a k-value of 3.
 
+To run the `knnclient` you must provide the following:
+
++ The client's IP
++ The server's IP
++ The server's port
++ The unclassified file
++ The file to output the classified information
+
+For example:
+
+```bash
+$ ./knnclient 127.0.0.1 127.0.0.1 1234 ./unclassified.csv ./output.csv
+```
+
+Will connect the client to the server set up by the previous command and will output the classification of the objects in `./unclassified.csv` into `./output.csv`.
 
 ## General Structure
 
-The project is split into three main directories:
+The project is split into four main directories:
 
 + **The `include` directory** - 
     The `include` directory holds all of the header files that have been used in this project.
     Some of the headers, for example `knn-algo.h`, hold implementations for template methods or other things that should be implemented in header files (`knn-algo.h` holds an implementation for the quick select algorithm for a vector and in `misc.h` there is an implemetation for an array we used in other parts of the project).
 + **The `lib` directory** - 
-    The `lib` directory contains all files which are meant to be linked to the program and not compiled.
+    The `lib` directory has files which are meant to be portable/be shared between the client and server.
     These are the files which contain implementations of the template methods declared in the various header files in the `include` directory which have not been defined.
+    It also includes `.cpp` files for implementations of non-template member functions declared in various header files.
 + **The `src` directory** - 
     In the `src` directory we have `.cpp` files that implement all of the program-dependent part of the project, that includes the `main` and other program-dependent processes.
 
@@ -95,4 +115,14 @@ Furthermore, we implemented various methods for initializing a `DataSet` from a 
 These are all template methods intended to be versatile.
 Them being template methods also doesn't add any more complexity on our part (just for the compiler and your memory) so it was a win-win for us.
 The functions can be found in [knn-io.tpp](./lib/knn-io.tpp).
+
+### Streams and Serialization
+
+We also implemented streams and serilialization methods, detail on which can be found in this repository's wiki.
+
+## Socket Constants
+
+Because of the serialization we implemented, buffering was redundant and therefore not used.
+This is because the amount of data needed to be read is known at run time, as per our implementation of serialization for various objects.
+The port is left up to the user to determine, and the timeout for the socket was not specified (this may change for the next assignment when the server needs to actually be good).
 

@@ -11,7 +11,7 @@ double stod(std::string s) { return std::stod(s); }
 
 int main(int argc, char** argv) {
     if (argc < 5) {
-        std::cout << "\e[31;1mUsage:\e[0m " << argv[0] << " <client ip> <server ip> <server port> <unclassified> <classified file dir>" << std::endl;
+        std::cout << "\e[31;1mUsage:\e[0m " << argv[0] << " <client ip> <server ip> <server port> <unclassified> <classified file output>" << std::endl;
         std::exit(1);
     }
 

@@ -193,9 +193,8 @@ namespace misc {
 
     template <typename T>
     streams::Serializer& operator>>(streams::Serializer& s, array<T>& arr) {
-        if (arr.m_len > 0) delete[] arr.m_arr;
+        if (arr.m_len > 0) delete[] arr.m_arr; arr.m_len = 0;
         s >> arr.m_len;
-        std::cout << "\e[31mNew length\e[0m" << arr.m_len << std::endl;
         arr.m_arr = new T[arr.m_len];
 
         for (int i = 0; i < arr.m_len; i++) {
