@@ -1,4 +1,5 @@
 #include "knn.h"
+#include <cmath>
 
 namespace distances {
     
