@@ -39,7 +39,7 @@ namespace distances {
         p1Data.assert_comparable(p2Data);       // Check that both arrays are of a comparable length.
 
         for (int i = 0; i < p1Data.length(); i++) {
-            retVal += abs(p1Data[i] - p2Data[i]);
+            retVal += std::abs(p1Data[i] - p2Data[i]);
         }
 
         return retVal;

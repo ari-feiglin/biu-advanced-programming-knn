@@ -100,6 +100,8 @@ namespace streams {
             TCPSocket(std::string ip, int port, std::string dest_ip, int dest_port) :
                 TCPSocket(ip.c_str(), port, dest_ip.c_str(), dest_port) { }
 
+            TCPSocket(const TCPSocket& other) : fd(other.fd) { }
+
             ~TCPSocket() { this->close(); }
 
             /**
