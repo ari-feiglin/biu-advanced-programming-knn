@@ -24,6 +24,74 @@ void CLI::start(TCPSocket server, std::string exit_name) {
     }
 }
 
+void Upload_Files::execute(CLI::Settings& settings) override {
+    // resetting the classified to false
+    settings.is_classified = false;
+
+    // open train file
+    std::cout << "Please upload your local train CSV file." << std::endl;
+    std::string train_path;
+    std::cin >> train_path;
+    settings.train_file.open(train_path);
+    std::cout << "Upload complete" << std::endl;
+
+    // open test file
+    std::cout << "Please upload your local test CSV file." << std::endl;
+    std::string test_path;
+    std::cin >> test_path;
+    settings.test_file.open(test_path);
+    std::cout << "Upload complete" << std::endl;
+}
+
+void Algorithm_Settings::execute(CLI::Settings& settings) override {
+    // display settings
+    std::cout << "The current KNN parameters are: K = "
+              << settings.k_value << ", " << "distance metric = "
+              << settings.distance_metric << std::endl;
+    
+    std::string new_settings;
+    while (true) {
+        // get new settings    
+        new_settings.clear();
+        std::cin >> new_settings;
+
+        // check if changed
+        if (new_settings.compare("\n") == 0) {
+            return;
+        }
+        
+        // break the string to an int and a string
+        std::vector<std::string> split;
+        std::stringstream ss(new_settings);
+        std::string s;
+        while (std::getline(ss, s, ' ')) {
+            split.push_back(s);
+        }
+
+        int k = std::stoi(split.front());
+        std::string distance_metric = split.back();
+        
+        // check if k is between 1-10
+        if (k < 1 || k > 10) {
+            std::cout << "Invalid value for K, please try again" << std::endl;
+            continue;
+        }
+
+        // check if distance metric is EUC, MAN or CHE
+        if (distance_metric.compare("EUC") != 0 &&
+            distance_metric.compare("MAN") != 0 &&
+            distance_metric.compare("CHE") != 0) {
+            std::cout << "Invalid distance metric, please try again" << std::endl;
+            continue;
+        }
+
+        // valid values
+        settings.k_value = k;
+        settings.distance_metric.assign(distance_metric);
+        break;
+    }
+}
+
 void Classify_Data::execute(CLI::Settings& settings) override {
     settings.classified.clear();
 
@@ -41,7 +109,7 @@ void Classify_Data::execute(CLI::Settings& settings) override {
 }
 
 void Display_Confusion_Matrix::execute(CLI::Settings& settings) override {
-    if (!settings.classified) {
+    if (!settings.is_classified) {
         std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
         return;
     }

@@ -25,19 +25,19 @@ namespace knn {
                 streams::Serializer serializer;         // Serializer to server
                 int k_value;                            // The k value to use in the algorithm
                 std::string distance_metric;            // The identifier for the distance metric (EUC, etc)
-                std::ofstream train_file;               // The file to train the database with (unclassified)
-                std::ofstream test_file;                // The file to test the database with (classified)
-                bool classified;                        // Whether or not the data has been classified already
+                std::ifstream train_file;               // The file to train the database with (unclassified)
+                std::ifstream test_file;                // The file to test the database with (classified)
+                bool is_classified;                        // Whether or not the data has been classified already
                 std::vector<std::string> classified;    // A vector of the classified names
 
                 Settings() :
-                    classified(false) { }
+                    is_classified(false) { }
 
                 Settings(streams::Serializer server, int k, std::string distance) :
-                    serializer(server), k_value(k), distance_metric(distance), classified(false) { }
+                    serializer(server), k_value(k), distance_metric(distance), is_classified(false) { }
 
                 Settings(streams::TCPSocket& server, int k, std::string distance) :
-                    k_value(k), distance_metric(distance), classified(false) {
+                    k_value(k), distance_metric(distance), is_classified(false) {
                     this->serializer(&server);
                 }
             };
@@ -63,6 +63,22 @@ namespace knn {
             std::string get_description() { return this->m_description; }
     };
 
+    class Upload_Files : public Command {
+        public:
+            Upload_Files(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+
+    class Algorithm_Settings : public Command {
+        public:
+            Algorithm_Settings(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+
     class Classify_Data : public Command {
         public:
             Classify_Data(std::string description) :
@@ -71,6 +87,22 @@ namespace knn {
             void execute(CLI::Settings& settings) override;
     };
 
+    class Display_Results : public Command {
+        public:
+            Display_Results(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+    
+    class Download_Results : public Command {
+        public:
+            Download_Results(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+    
     class Display_Confusion_Matrix : public Command {
         public:
             Display_Confusion_Matrix(std::string description) :
