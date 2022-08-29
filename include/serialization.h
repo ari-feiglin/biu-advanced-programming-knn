@@ -95,7 +95,7 @@ namespace streams {
             return *this;
         }
 
-        //private:
+        private:
             static T* null_pointer;
             static size_t no_size;
     };

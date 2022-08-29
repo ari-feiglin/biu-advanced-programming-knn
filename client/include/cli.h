@@ -18,26 +18,26 @@ namespace knn {
              * @param server        The server connected to.
              * @param exit_name     What to display for the exit option.
              */
-            void start(TCPSocket server, std::string exit_name="exit");
+            void start(streams::TCPSocket server, std::string exit_name="exit");
 
             // This class must be public so Command-derived classes can access it.
             struct Settings {
                 streams::Serializer serializer;         // Serializer to server
                 int k_value;                            // The k value to use in the algorithm
                 std::string distance_metric;            // The identifier for the distance metric (EUC, etc)
-                std::ofstream train_file;               // The file to train the database with (unclassified)
-                std::ofstream test_file;                // The file to test the database with (classified)
-                bool classified;                        // Whether or not the data has been classified already
-                std::vector<std::string> classified;    // A vector of the classified names
+                std::ifstream train_file;               // The file to train the database with (unclassified)
+                std::ifstream test_file;                // The file to test the database with (classified)
+                bool is_classified;                     // Whether or not the data has been classified already
+                std::vector<std::string> classified_names;    // A vector of the classified names
 
                 Settings() :
-                    classified(false) { }
+                    is_classified(false) { }
 
                 Settings(streams::Serializer server, int k, std::string distance) :
-                    serializer(server), k_value(k), distance_metric(distance), classified(false) { }
+                    serializer(server), k_value(k), distance_metric(distance), is_classified(false) { }
 
                 Settings(streams::TCPSocket& server, int k, std::string distance) :
-                    k_value(k), distance_metric(distance), classified(false) {
+                    k_value(k), distance_metric(distance), is_classified(false) {
                     this->serializer(&server);
                 }
             };

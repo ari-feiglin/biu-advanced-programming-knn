@@ -1,7 +1,7 @@
 PROJECT_NAME = ../knnclient
 CC = g++
 INCLUDE_DIR = include ../include
-SRC_DIR = .
+SRC_DIR = ./src
 LIB_DIR = ../lib
 OBJ_DIR = ./build
 LIB_OBJ_DIR = ../build
