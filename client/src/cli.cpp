@@ -103,7 +103,10 @@ void Algorithm_Settings::execute(CLI::Settings& settings) {
 }
 
 void Classify_Data::execute(CLI::Settings& settings) {
-    settings.classified_names.clear();
+    /* Need to add support for changing distance metric */
+    settings.train_file.clear();
+    settings.train_file.seekg(0);
+    settings.classified_names = std::vector<std::string>();
 
     while (true) {
         std::string output;
@@ -116,6 +119,8 @@ void Classify_Data::execute(CLI::Settings& settings) {
 
         delete dp;
     }
+
+    settings.is_classified = true;
 }
 
 void Display_Results::execute(CLI::Settings& settings) { }
@@ -145,19 +150,18 @@ void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
 
     std::unordered_map<std::string, size_t> class_order;
     int i = 0;
+    size_t* true_count = new size_t[classes.size()]();
+    size_t**  confusion_matrix = new size_t*[classes.size()]();
 
-    /* Order the classes */
+    /* Order the classes, and allocate confusion matrix */
     for (std::string class_name : classes) {
+        confusion_matrix[i] = new size_t[classes.size()]();
         class_order[class_name] = i;
         i++;
     }
 
-    size_t* true_count = new size_t[classes.size()];
-    size_t**  confusion_matrix = new size_t*[classes.size()];
-
     /* Compute the confusion matrix */
-    for (int i = 0; i < classes.size(); i++) {
-        confusion_matrix[i] = new size_t[classes.size()];
+    for (int i = 0; i < true_classes.size(); i++) {
         confusion_matrix[class_order[true_classes[i]]][class_order[settings.classified_names[i]]]++;
         true_count[class_order[true_classes[i]]]++;
     }
@@ -165,9 +169,9 @@ void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
     /* Print the confusion matrix */
     for (int i = 0; i < classes.size(); i++) {
         for (int j = 0; j < classes.size(); j++) {
-            if (true_count[i] > 0) printf("%-5ld", 100 * confusion_matrix[i][j] / true_count[i]);
-            else if (confusion_matrix[i][j] == 0) printf("    0");
-            else printf("  inf");
+            if (true_count[i] > 0) printf("|%5ld|", (100 * confusion_matrix[i][j]) / true_count[i]);
+            else if (confusion_matrix[i][j] == 0) printf("|    0|");
+            else printf("|  inf|");
         }
         putchar('\n');
 

@@ -11,10 +11,12 @@ int main(int argc, char** argv) {
 
     TCPSocket client = TCPSocket(argv[1], 0, argv[2], strtol(argv[3], NULL, 0));
  
-    Classify_Data com3{"classify data."};
-    Display_Confusion_Matrix com6{"display confusion matrix."};
+    Upload_Files com1{"upload an unclassified csv file"};
+    Algorithm_Settings com2{"algorithm settings"};
+    Classify_Data com3{"classify data"};
+    Display_Confusion_Matrix com6{"display confusion matrix"};
 
-    CLI cli = CLI(&com3, &com6);
+    CLI cli = CLI(&com1, &com2, &com3, &com6);
 
     cli.start(client);
 
