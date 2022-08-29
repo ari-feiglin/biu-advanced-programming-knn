@@ -108,6 +108,10 @@ void Classify_Data::execute(CLI::Settings& settings) override {
     }
 }
 
+void Display_Results::execute(CLI::Settings& settings) override { }
+
+void Download_Results::execute(CLI::Settings& settings) override { }
+
 void Display_Confusion_Matrix::execute(CLI::Settings& settings) override {
     if (!settings.is_classified) {
         std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
