@@ -63,6 +63,22 @@ namespace knn {
             std::string get_description() { return this->m_description; }
     };
 
+    class Upload_Files : public Command {
+        public:
+            Upload_Files(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+
+    class Algorithm_Settings : public Command {
+        public:
+            Algorithm_Settings(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+
     class Classify_Data : public Command {
         public:
             Classify_Data(std::string description) :
@@ -71,6 +87,22 @@ namespace knn {
             void execute(CLI::Settings& settings) override;
     };
 
+    class Display_Results : public Command {
+        public:
+            Display_Results(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+    
+    class Download_Results : public Command {
+        public:
+            Download_Results(std::string description) :
+                Command(description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+    
     class Display_Confusion_Matrix : public Command {
         public:
             Display_Confusion_Matrix(std::string description) :
