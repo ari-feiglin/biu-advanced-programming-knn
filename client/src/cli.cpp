@@ -83,7 +83,7 @@ void Algorithm_Settings::execute(CLI::Settings& settings) {
         
         // check if k is between 1-10
         if (k < 1 || k > 10) {
-            std::cout << "Invalid value for K, please try again" << std::endl;
+            std::cout << "\e[31;1mInvalid value for K, please try again\e[0m" << std::endl;
             continue;
         }
 
@@ -91,13 +91,14 @@ void Algorithm_Settings::execute(CLI::Settings& settings) {
         if (distance_metric.compare("EUC") != 0 &&
             distance_metric.compare("MAN") != 0 &&
             distance_metric.compare("CHE") != 0) {
-            std::cout << "Invalid distance metric, please try again" << std::endl;
+            std::cout << "\e[31;1mInvalid distance metric, please try again\e[0m" << std::endl;
             continue;
         }
 
         // valid values
         settings.k_value = k;
         settings.distance_metric.assign(distance_metric);
+        settings.is_classified = false;
         break;
     }
 }
@@ -123,9 +124,40 @@ void Classify_Data::execute(CLI::Settings& settings) {
     settings.is_classified = true;
 }
 
-void Display_Results::execute(CLI::Settings& settings) { }
+void Display_Results::execute(CLI::Settings& settings) {
+    if (!settings.is_classified) {
+        std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
+        return;
+    }
+    
+    int length = settings.classified_names.size();
+    for (int i = 0; i < length; i++) {
+        std::cout << (i + 1) << "\t" << settings.classified_names[i] << std::endl;
+    }
+    
+    std::cout << "Done." << std::endl;
+}
 
-void Download_Results::execute(CLI::Settings& settings) { }
+void Download_Results::execute(CLI::Settings& settings) {
+    if (!settings.is_classified) {
+        std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
+        return;
+    }
+
+    std::ofstream results;
+    std::string results_path;
+    std::cout << "Please type the path for saving the results." << std::endl;
+    std::cin >> results_path;
+    results_path.append("results.txt");
+    results.open((results_path));
+
+    int length = settings.classified_names.size();
+    for (int i = 0; i < length; i++) {
+        results << (i + 1) << "\t" << settings.classified_names[i] << std::endl;
+    }
+    
+    results.close();
+}
 
 void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
     if (!settings.is_classified) {
