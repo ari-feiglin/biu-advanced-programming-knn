@@ -33,23 +33,43 @@ void CLI::start(streams::TCPSocket server, std::string exit_name) {
         else if (choice == this->m_commands.size() + 1) break;
         else this->m_commands.at(choice-1)->execute(settings);
     }
+
+    if (settings.test_file.is_open()) settings.test_file.close();
+    if (settings.train_file.is_open()) settings.train_file.close();
 }
 
 void Upload_Files::execute(CLI::Settings& settings) {
-    // resetting the classified to false
-    settings.is_classified = false;
+    // while loop to ensure valid input
+    while (true) {
+        // open train file
+        std::cout << "Please upload your local train CSV file. (Enter ! to skip)" << std::endl;
+        std::string train_path;
+        std::cin >> train_path;
 
-    // open train file
-    std::cout << "Please upload your local train CSV file." << std::endl;
-    std::string train_path;
-    std::cin >> train_path;
-    settings.train_file.open(train_path);
-    std::cout << "Upload complete" << std::endl;
+        // If the user skips this step, dont change the current train file.
+        if (train_path == "!") {
+            if (settings.train_file.is_open()) std::cout << "Leaving the train file unchanged..." << std::endl;
+            else {
+                std::cout << "You haven't uploaded a train file previously." << std::endl;
+                continue;
+            }
+        }
+        else {
+            // resetting the classified to false
+            settings.is_classified = false;
+            if (settings.train_file.is_open()) settings.train_file.close();
+            settings.train_file.open(train_path);
+            std::cout << "Upload complete" << std::endl;
+        }
+
+        break;
+    }
 
     // open test file
     std::cout << "Please upload your local test CSV file." << std::endl;
     std::string test_path;
     std::cin >> test_path;
+    if (settings.test_file.is_open()) settings.test_file.close();
     settings.test_file.open(test_path);
     std::cout << "Upload complete" << std::endl;
 }
@@ -173,15 +193,21 @@ void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
 
     std::string true_class;
 
+    int i = 0;
     /* Get all class names as well as the true classes */
-    for (int i = 0; std::getline(settings.test_file, true_class); i++) {
+    for (; std::getline(settings.test_file, true_class); i++) {
         true_classes.push_back(true_class);
         classes.insert(true_class);
         classes.insert(settings.classified_names[i]);
     }
 
+    if (i != settings.classified_names.size())
+        std::cout << "\e[31;1mMismatch between number of classified and true classes.\e[0m Have " <<
+            settings.classified_names.size() << " and " << i << ".\n\tPlease ensure that your test and train files "
+            "have the same number of lines." << std::endl;
+
     std::unordered_map<std::string, size_t> class_order;
-    int i = 0;
+    i = 0;
     size_t* true_count = new size_t[classes.size()]();
     size_t**  confusion_matrix = new size_t*[classes.size()]();
 

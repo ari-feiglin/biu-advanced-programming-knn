@@ -19,6 +19,5 @@ int main(int argc, char** argv) {
     CLI cli = CLI(&com1, &com2, &com3, &com6);
 
     cli.start(client);
-
-    client.close();
 }
+
