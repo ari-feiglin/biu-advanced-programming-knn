@@ -47,15 +47,37 @@ namespace streams {
         }
     }
 
-    TCPSocket TCPSocket::accept_connection() {
+    TCPSocket TCPSocket::accept_connection(int timeout) {
         struct sockaddr_in client;
         unsigned int addr_len = sizeof(client);
-        int client_sock = accept(this->fd, (struct sockaddr *) &client,  &addr_len);
+        int client_sock = -1;
+
+        if (timeout > 0) {
+            if (fcntl(this->fd, F_SETFL, O_NONBLOCK) == -1) {
+                throw std::ios_base::failure("error encountered on setting socket to nonblocking, errno: " +
+                        std::to_string(errno));
+            }
+
+            fd_set fds;
+            struct timeval s_timeout = {0};
+
+            s_timeout.tv_sec = timeout;
+
+            FD_ZERO(&fds);
+            FD_SET(this->fd, &fds);
+
+            int num_ready_fds = select(this->fd + 1, &fds, NULL, NULL, &s_timeout);
+            if (num_ready_fds == 0) return TCPSocket(-1);    // No available connections.
+            else if (num_ready_fds == -1) throw std::ios_base::failure("error encountered while selecting available fds, errno: " +
+                    std::to_string(errno));
+        }
+
+        client_sock = accept(this->fd, (struct sockaddr *) &client,  &addr_len);
         if (client_sock < 0) {
             throw std::ios_base::failure("error encountered while attempting to accept an incoming connection, errno: " +
                     std::to_string(errno));
         }
-        
+
         return TCPSocket(client_sock);
     }
 

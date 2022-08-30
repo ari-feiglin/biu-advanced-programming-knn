@@ -4,6 +4,8 @@
 #include <ios>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <fcntl.h>
 
 namespace streams {
     /**
@@ -52,6 +54,11 @@ namespace streams {
          * @note            This should ensure that the correct amount of bytes were sent.
          */
         virtual void send(const void* data, size_t size) =0;
+
+        /**
+         * Checks if the Stream is associated with a valid... stream.
+         */
+        virtual bool is_good() =0;
 
         /**
          * Closes the stream.
@@ -111,9 +118,14 @@ namespace streams {
 
             /**
              * Accept a connection request.
-             * @return      The socket which connected.
+             * @param timeout       The timeout for the accepted connection. -1 for blocking (if the socket
+             *                      is still blocking).
+             * @return              The socket which connected. If the acceptance is timed out, then a TCPSocket
+             *                      is returned where a call to .is_good() returns false.
+             * Note that if timeout is specified (>=0) then the socket is assumed to be used only
+             * for timeout'd connections, and is therefore set to non-blocking.
              */
-            TCPSocket accept_connection();
+            TCPSocket accept_connection(int timeout=-1);
 
             /**
              * Connect to a remote socket.
@@ -150,7 +162,12 @@ namespace streams {
 
             void send(const void* data, size_t size) override;
 
+            /**
+             * Gets the address of the socket.
+             */
             Address get_address();
+
+            bool is_good() override { return this->fd >= 0; }
 
             void close() override;
     };
