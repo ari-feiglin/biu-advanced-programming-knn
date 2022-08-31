@@ -15,10 +15,18 @@ namespace threading {
         std::function<void()> m_job;   
     
         public:
+            Job() { }
+
             template <typename... Params>
             Job(std::function<void(Params...)> job, Params... params) {
-                this->m_job = [job, params...]() { (job)(params...); }
+                this->m_job = [job, params...]() { (job)(params...); };
             }
+
+            Job(Job& other) : m_job{other.m_job} { }
+            Job(Job&& other) : m_job{std::move(other.m_job)} { }
+
+            Job& operator=(Job& other) { this->m_job = other.m_job; return *this; }
+            Job& operator=(Job&& other) { this->m_job = std::move(other.m_job); return *this; }
     
             void operator()() { this->m_job(); }
     };
@@ -37,9 +45,8 @@ namespace threading {
              * Constructor for a ThreadPool.
              * Begins execution of ThreadPool as well.
              * @param num_threads       The number of threads to pool.
-             *                          -1 to use the value of hardware_concurrency.
              */
-            ThreadPool(unsigned int num_threads=-1);
+            ThreadPool(unsigned int num_threads);
 
             /**
              * Destructs the thread pool and joins all the threads.

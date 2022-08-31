@@ -79,30 +79,13 @@ void Algorithm_Settings::execute(CLI::Settings& settings) {
               << settings.k_value << ", " << "distance metric = "
               << settings.distance_metric << std::endl;
     
-    std::string new_settings;
     while (true) {
-        // get new settings    
-        new_settings.clear();
-        std::cin >> new_settings;
+        int k;
+        std::string distance_metric;
+        std::cin >> k >> distance_metric;
 
-        // check if changed
-        if (new_settings.compare("\n") == 0) {
-            return;
-        }
-        
-        // break the string to an int and a string
-        std::vector<std::string> split;
-        std::stringstream ss(new_settings);
-        std::string s;
-        while (std::getline(ss, s, ' ')) {
-            split.push_back(s);
-        }
-
-        int k = std::stoi(split.front());
-        std::string distance_metric = split.back();
-        
         // check if k is between 1-10
-        if (k < 1 || k > 10) {
+        if (k < 1/* || k > 10*/) {
             std::cout << "\e[31;1mInvalid value for K, please try again\e[0m" << std::endl;
             continue;
         }
@@ -128,17 +111,19 @@ void Classify_Data::execute(CLI::Settings& settings) {
     settings.train_file.clear();
     settings.train_file.seekg(0);
     settings.classified_names = std::vector<std::string>();
-    char token; 
+    char token;
+
+    // sending token as 0 and then k value and distance metric.
+    token = 0;
+    settings.serializer << token;
+    settings.serializer << settings.k_value;
+    settings.serializer << settings.distance_metric;
+
     while (true) {
         std::string output;
         CartDataPoint<double>* dp = read_point(settings.train_file, stod, false);
         if (dp == nullptr) break;
 
-        // sending token as 0 and then k value and distance metric.
-        token = 0;
-        settings.serializer << token;
-        settings.serializer << settings.k_value;
-        settings.serializer << settings.distance_metric;
         // sending token as 1 and then dp.
         token = 1;
         settings.serializer << token;
@@ -235,9 +220,10 @@ void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
     /* Print the confusion matrix */
     for (int i = 0; i < classes.size(); i++) {
         for (int j = 0; j < classes.size(); j++) {
-            if (true_count[i] > 0) printf("|%5ld|", (100 * confusion_matrix[i][j]) / true_count[i]);
+            /*if (true_count[i] > 0) printf("|%5ld|", (100 * confusion_matrix[i][j]) / true_count[i]);
             else if (confusion_matrix[i][j] == 0) printf("|    0|");
-            else printf("|  inf|");
+            else printf("|  inf|");*/
+            printf("|%5ld|", confusion_matrix[i][j]);
         }
         putchar('\n');
 

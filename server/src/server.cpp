@@ -40,13 +40,10 @@ int main(int argc, char** argv) {
     distance_metric_map["MAN"] = distances::manhattan_distance;
     distance_metric_map["CHE"] = distances::chebyshev_distance;
 
-
     // TBD
     int k;
     std::string distance_metric;
 
-    
-    
     classified.open(argv[3]);
 
     data_set = knn::initialize_dataset<double>(classified, stod);
@@ -54,7 +51,7 @@ int main(int argc, char** argv) {
     TCPSocket server = TCPSocket(argv[1], strtol(argv[2], NULL, 0));
     server.listening(10);
 
-    ThreadPool thread_pool = ThreadPool();
+    //ThreadPool thread_pool{50}; // Commented this out since we havent fully implemented the threading yet
     
     while (true) {
         TCPSocket client = server.accept_connection(300); // times out after 5 minutes with no connection
@@ -63,18 +60,20 @@ int main(int argc, char** argv) {
         serializer(&client);
         char token;
         knn::CartDataPoint<double> data_point;
+
         while (true) {
             /* If sending/receiving from client fails, assume disconnection and disconnect */
             try {
                 // get token, if 0 get k and distance_metric
                 serializer >> token;
                 if (token == 0) {
-                    serializer >> k;
-                    serializer >> distance_metric;
+                    std::cout << "Getting settings" << std::endl;
+                    serializer >> k >> distance_metric;
                     continue;
                 }
                 // else its 1 and we can get data point and return it as usual
                 serializer >> data_point;
+                std::cout << distance_metric << std::endl;
                 serializer << data_set->get_nearest_class(k, &data_point, distance_metric_map[distance_metric]);
             } catch (std::ios_base::failure e) {
                 break;

@@ -2,12 +2,11 @@
 
 namespace threading {
     ThreadPool::ThreadPool(unsigned int num_threads) : should_terminate{false} {
-        if (num_threads < 0) num_threads = std::thread::hardware_concurrency();
         this->threads.resize(num_threads);
 
         /* Have all the threads run on the thread loop */
         for (unsigned int i = 0; i < num_threads; i++) {
-            this->threads[i] = std::thread(this->thread_loop);
+            this->threads[i] = std::thread(&ThreadPool::thread_loop, this);
         }
     }
 
@@ -43,15 +42,17 @@ namespace threading {
 
     void ThreadPool::thread_loop() {
         while (true) {
+            Job job;
+
             {
                 std::unique_lock<std::mutex> lock{this->jobs_mutex};
-                this->mutex_condition.wait(this->jobs_mutex, [this]() {
+                this->mutex_condition.wait(lock, [this] {
                         return !this->jobs.empty() || this->should_terminate;
                     });
 
                 if (this->should_terminate) return;
 
-                Job job = this->jobs.front();
+                job = this->jobs.front();
                 this->jobs.pop();
             }   // Unlock the lock
 

@@ -1,12 +1,12 @@
 PROJECT_NAME = ../knnserver
 CC = g++
 INCLUDE_DIR = include ../include
-SRC_DIR = .
+SRC_DIR = ./src
 LIB_DIR = ../lib
 OBJ_DIR = ./build
 LIB_OBJ_DIR = ../build
 
-CFLAGS := -g -std=c++11 $(patsubst %,-I%,$(INCLUDE_DIR)) -I$(LIB_DIR)
+CFLAGS := -g -std=c++11 -pthread $(patsubst %,-I%,$(INCLUDE_DIR)) -I$(LIB_DIR)
 
 DEPS := $(wildcard $(LIB_DIR)/*.tpp) $(wildcard $(patsubst %,%/*.h,$(INCLUDE_DIR)))
 
