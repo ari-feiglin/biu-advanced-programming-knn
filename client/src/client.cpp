@@ -4,7 +4,7 @@ using namespace streams;
 using namespace knn;
 
 int main(int argc, char** argv) {
-    if (argc < 4) {
+    if (argc < 3) {
         std::cout << "\e[31;1mUsage:\e[0m " << argv[0] << " <client ip> <server ip> <server port>" << std::endl;
         std::exit(1);
     }

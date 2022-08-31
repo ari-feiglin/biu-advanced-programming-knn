@@ -128,12 +128,20 @@ void Classify_Data::execute(CLI::Settings& settings) {
     settings.train_file.clear();
     settings.train_file.seekg(0);
     settings.classified_names = std::vector<std::string>();
-
+    char token; 
     while (true) {
         std::string output;
         CartDataPoint<double>* dp = read_point(settings.train_file, stod, false);
         if (dp == nullptr) break;
 
+        // sending token as 0 and then k value and distance metric.
+        token = 0;
+        settings.serializer << token;
+        settings.serializer << settings.k_value;
+        settings.serializer << settings.distance_metric;
+        // sending token as 1 and then dp.
+        token = 1;
+        settings.serializer << token;
         settings.serializer << dp;
         settings.serializer >> output;
         settings.classified_names.push_back(output);

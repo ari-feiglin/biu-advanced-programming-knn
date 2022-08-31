@@ -3,6 +3,9 @@
 #include <thread>
 #include <mutex>
 #include <functional>
+#include <condition_variable>
+#include <vector>
+#include <queue>
 
 namespace threading {
     /**
