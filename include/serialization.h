@@ -6,6 +6,15 @@
 #include "streams.h"
 
 namespace streams {
+    enum SerializationTokens = {send_token,
+                                int_token,
+                                string_token,
+                                open_file_w_token,
+                                open_file_r_token,
+                                write_file_token,
+                                read_file_token,
+                                end_token};
+
     /**
      * Class for serializing objects.
      * In order to serialize objects o1,...,oN into a Stream stream and a Serializer serializer, do:
@@ -180,53 +189,5 @@ namespace streams {
         return s;
     }
 
-    enum ClassTokens {tok_send = 0, tok_int = 1, tok_string = 2};
-
-    /**
-     * The DefaultSerializer class is a wrapper around the Serializer class which
-     * allows for the receiving end of the serialization to know what it is to receive
-     * or must send.
-     * The tokens it sends to denote classes are those used defined by the ClassTokens enum.
-     */
-    class DefaultSerializer : public DefaultIO {
-        static std::map<std::type_info, int> class_map;
-
-        Serializer m_serializer;
-
-        public:
-            DefaultSerializer(Stream* s) {
-                this->m_serializer(s);
-            }
-
-            DefaultSerializer(const DefaultSerializer& other) { this->m_serializer = other.m_serializer; }
-
-            /**
-             * Deserializes an object. First a token is sent so the recipient knows what kind of type to send.
-             * @param t     The object to deserialize.
-             * @return      A reference to this.
-             */
-            template <typename T>
-            DefaultSerializer& operator>>(T t) {
-                this->m_serializer << class_map[typeid(T)];
-                this->m_serializer >> t;
-                return *this;
-            }
-
-            /**
-             * Serializes an object. First a token is sent which notifies the recipient that it is receiving
-             * a serialized object (and not a token for serialization), then the token type is sent, and finally
-             * the object is serialized.
-             * @param t     The object to serialize.
-             * @return      A reference to this.
-             */
-            template <typename T>
-            DefaultSerializer& operator<<(T t) {
-                this->m_serializer << DefaultSerializer::send_token << class_map[typeid(T)] << t;
-                return *this;
-            }
-    };
-
-    std::map<std::type_info, int> DefaultSerializer::class_map = {{typeid(int), ClassTokens::tok_int},
-                                                                  {typeid(std::string), ClassTokens::tok_string}};
 }
 

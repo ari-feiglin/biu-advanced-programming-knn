@@ -99,48 +99,37 @@ void Algorithm_Settings::execute(CLI::Settings& settings) {
 }
 
 void Classify_Data::execute(CLI::Settings& settings) {
-    /* Need to add support for changing distance metric */
-    settings.train_file.clear();
-    settings.train_file.seekg(0);
     settings.classified_names = std::vector<std::string>();
-    char token;
 
-    // sending token as 0 and then k value and distance metric.
-    token = 0;
-    settings.serializer << token;
-    settings.serializer << settings.k_value;
-    settings.serializer << settings.distance_metric;
+    this->m_io_device.open_input(settings.train_file);
 
     while (true) {
-        std::string output;
-        CartDataPoint<double>* dp = read_point(settings.train_file, stod, false);
-        if (dp == nullptr) break;
+        std::string output = this->m_io_device.read();
+        if (output == "") break;
 
-        // sending token as 1 and then dp.
-        token = 1;
-        settings.serializer << token;
-        settings.serializer << dp;
-        settings.serializer >> output;
-        settings.classified_names.push_back(output);
+        CartDataPoint<double>* dp = knn::get_point<double>(output, stod, false);
+        settings.classified_names.push_back(settings.data_set.get_nearest_class(settings.k, settings.distance_metric));
 
         delete dp;
     }
+
+    this->m_io_device.close_output();
 
     settings.is_classified = true;
 }
 
 void Display_Results::execute(CLI::Settings& settings) {
     if (!settings.is_classified) {
-        this->m_io_device << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
+        this->m_io_device << "\e[31;1mHaven't classified any data yet!\e[0m\n";
         return;
     }
     
     int length = settings.classified_names.size();
     for (int i = 0; i < length; i++) {
-        this->m_io_device << (i + 1) << "\t" << settings.classified_names[i] << std::endl;
+        this->m_io_device << std::to_string(i + 1) + "\t" + settings.classified_names[i] + "\n";
     }
     
-    this->m_io_device << "Done." << std::endl;
+    this->m_io_device << "Done.\n";
 }
 
 void Download_Results::execute(CLI::Settings& settings) {
@@ -149,18 +138,17 @@ void Download_Results::execute(CLI::Settings& settings) {
         return;
     }
 
-    std::ofstream results;
     std::string results_path;
     this->m_io_device << "Please type the path for saving the results." << std::endl;
     this->m_io_device >> results_path;
-    results.open(results_path);
+    this->m_io_device.open_output(results_path);
 
     int length = settings.classified_names.size();
     for (int i = 0; i < length; i++) {
-        results << (i + 1) << "\t" << settings.classified_names[i] << std::endl;
+        results << std::to_string(i + 1) + "\t" + settings.classified_names[i] + "\n";
     }
     
-    results.close();
+    this->m_io_device.close_output();
 }
 
 void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
