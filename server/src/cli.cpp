@@ -20,73 +20,65 @@ void CLI::start(streams::TCPSocket server, std::string exit_name) {
         int i = 1;
 
         for (auto& com : this->m_commands) {
-            std::cout << i << ".\t" << com->get_description() << std::endl;
+            this->m_io_device << std::to_string(i) + ".\t" + com->get_description() + "\n";
             i++;
         }
-        std::cout << i << ".\t" << exit_name << std::endl;
+        this->m_io_device << std::to_string(i) + ".\t" + exit_name + "\n";
 
         int choice;
-        std::cin >> choice;
+        this->m_io_device >> choice;
 
         if (choice <= 0 || choice > this->m_commands.size() + 1)
-            std::cout << "\e[31;1mInvalid Command\e[0m" << std::endl;
+            this->m_io_device << "\e[31;1mInvalid Command\e[0m" << std::endl;
         else if (choice == this->m_commands.size() + 1) break;
         else this->m_commands.at(choice-1)->execute(settings);
     }
-
-    if (settings.test_file.is_open()) settings.test_file.close();
-    if (settings.train_file.is_open()) settings.train_file.close();
 }
 
 void Upload_Files::execute(CLI::Settings& settings) {
     // while loop to ensure valid input
     while (true) {
         // open train file
-        std::cout << "Please upload your local train CSV file. (Enter ! to skip)" << std::endl;
+        this->m_io_device << "Please upload your local train CSV file. (Enter ! to skip)\n";
         std::string train_path;
-        std::cin >> train_path;
+        this->m_io_device >> train_path;
 
         // If the user skips this step, dont change the current train file.
         if (train_path == "!") {
-            if (settings.train_file.is_open()) std::cout << "Leaving the train file unchanged..." << std::endl;
+            if (settings.train_file != "") this->m_io_device << "Leaving the train file unchanged...\n";
             else {
-                std::cout << "You haven't uploaded a train file previously." << std::endl;
+                this->m_io_device << "You haven't uploaded a train file previously.\n";
                 continue;
             }
-        }
-        else {
+        } else {
             // resetting the classified to false
             settings.is_classified = false;
-            if (settings.train_file.is_open()) settings.train_file.close();
-            settings.train_file.open(train_path);
-            std::cout << "Upload complete" << std::endl;
+            settings.train_file = train_path;
+            this->m_io_device << "Upload complete\n";
         }
 
         break;
     }
 
     // open test file
-    std::cout << "Please upload your local test CSV file." << std::endl;
-    std::string test_path;
-    std::cin >> test_path;
-    if (settings.test_file.is_open()) settings.test_file.close();
-    settings.test_file.open(test_path);
-    std::cout << "Upload complete" << std::endl;
+    this->m_io_device << "Please upload your local test CSV file.\n";
+    this->m_io_device >> settings.test_file;
+    this->m_io_device << "Upload complete" << std::endl;
 }
 
 void Algorithm_Settings::execute(CLI::Settings& settings) {
-    std::cout << "The current KNN parameters are: K = "
-              << settings.k_value << ", " << "distance metric = "
-              << settings.distance_metric << std::endl;
+    this->m_io_device << std::string("The current KNN parameters are: K = ") +
+              std::to_string(settings.k_value) + ", distance metric = " +
+              settings.distance_metric + "\n";
     
     while (true) {
         int k;
         std::string distance_metric;
-        std::cin >> k >> distance_metric;
+        this->m_io_device >> k >> distance_metric;
 
         // check if k is between 1-10
         if (k < 1/* || k > 10*/) {
-            std::cout << "\e[31;1mInvalid value for K, please try again\e[0m" << std::endl;
+            this->m_io_device << "\e[31;1mInvalid value for K, please try again\e[0m\n";
             continue;
         }
 
@@ -94,7 +86,7 @@ void Algorithm_Settings::execute(CLI::Settings& settings) {
         if (distance_metric.compare("EUC") != 0 &&
             distance_metric.compare("MAN") != 0 &&
             distance_metric.compare("CHE") != 0) {
-            std::cout << "\e[31;1mInvalid distance metric, please try again\e[0m" << std::endl;
+            this->m_io_device << "\e[31;1mInvalid distance metric, please try again\e[0m\n";
             continue;
         }
 
@@ -139,28 +131,28 @@ void Classify_Data::execute(CLI::Settings& settings) {
 
 void Display_Results::execute(CLI::Settings& settings) {
     if (!settings.is_classified) {
-        std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
+        this->m_io_device << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
         return;
     }
     
     int length = settings.classified_names.size();
     for (int i = 0; i < length; i++) {
-        std::cout << (i + 1) << "\t" << settings.classified_names[i] << std::endl;
+        this->m_io_device << (i + 1) << "\t" << settings.classified_names[i] << std::endl;
     }
     
-    std::cout << "Done." << std::endl;
+    this->m_io_device << "Done." << std::endl;
 }
 
 void Download_Results::execute(CLI::Settings& settings) {
     if (!settings.is_classified) {
-        std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
+        this->m_io_device << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
         return;
     }
 
     std::ofstream results;
     std::string results_path;
-    std::cout << "Please type the path for saving the results." << std::endl;
-    std::cin >> results_path;
+    this->m_io_device << "Please type the path for saving the results." << std::endl;
+    this->m_io_device >> results_path;
     results.open(results_path);
 
     int length = settings.classified_names.size();
@@ -173,7 +165,7 @@ void Download_Results::execute(CLI::Settings& settings) {
 
 void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
     if (!settings.is_classified) {
-        std::cout << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
+        this->m_io_device << "\e[31;1mHaven't classified any data yet!\e[0m" << std::endl;
         return;
     }
 
@@ -194,7 +186,7 @@ void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
     }
 
     if (i != settings.classified_names.size())
-        std::cout << "\e[31;1mMismatch between number of classified and true classes.\e[0m Have " <<
+        this->m_io_device << "\e[31;1mMismatch between number of classified and true classes.\e[0m Have " <<
             settings.classified_names.size() << " and " << i << ".\n\tPlease ensure that your test and train files "
             "have the same number of lines." << std::endl;
 

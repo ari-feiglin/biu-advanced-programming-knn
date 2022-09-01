@@ -4,9 +4,10 @@
 
 namespace knn {
     class Command;
-
+    
+    template <typename T>
     class CLI {
-        std::vector<Command*> m_commands;
+        std::vector<Command<T>*> m_commands;
 
         public:
             template <typename... Commands>
@@ -25,9 +26,10 @@ namespace knn {
                 streams::Serializer serializer;         // Serializer to server
                 int k_value;                            // The k value to use in the algorithm
                 std::string distance_metric;            // The identifier for the distance metric (EUC, etc)
-                std::ifstream train_file;               // The file to train the database with (unclassified)
-                std::ifstream test_file;                // The file to test the database with (classified)
+                std::string train_file;                 // The file to train the database with (unclassified)
+                std::string test_file;                  // The file to test the database with (classified)
                 bool is_classified;                     // Whether or not the data has been classified already
+                std::vector<std::string> true_names;          // A vector of the true class names
                 std::vector<std::string> classified_names;    // A vector of the classified names
 
                 Settings() :
@@ -43,13 +45,16 @@ namespace knn {
             };
     };
 
+    template <typename T>
     class Command {
         std::string m_description;
-        //streams::DefaultIO m_dio; We will ignore this for now.
+
+        protected:
+            T& m_io_device;
 
         public:
-            Command(std::string description) :
-                m_description(description) { }
+            Command(T& io_device, std::string description) :
+                m_io_device(io_device), m_description(description) { }
 
             /**
              * Execute the command.
@@ -63,50 +68,56 @@ namespace knn {
             std::string get_description() { return this->m_description; }
     };
 
-    class Upload_Files : public Command {
+    template <typename T>
+    class Upload_Files : public Command<T> {
         public:
-            Upload_Files(std::string description) :
-                Command(description) { }
+            Upload_Files(T& io_device, std::string description) :
+                Command(io_device, description) { }
 
             void execute(CLI::Settings& settings) override;
     };
 
-    class Algorithm_Settings : public Command {
+    template <typename T>
+    class Algorithm_Settings : public Command<T> {
         public:
-            Algorithm_Settings(std::string description) :
-                Command(description) { }
+            Algorithm_Settings(T& io_device, std::string description) :
+                Command(io_device, description) { }
 
             void execute(CLI::Settings& settings) override;
     };
 
-    class Classify_Data : public Command {
+    template <typename T>
+    class Classify_Data : public Command<T> {
         public:
-            Classify_Data(std::string description) :
-                Command(description) { }
+            Classify_Data(T& io_device, std::string description) :
+                Command(io_device, description) { }
 
             void execute(CLI::Settings& settings) override;
     };
 
-    class Display_Results : public Command {
+    template <typename T>
+    class Display_Results : public Command<T> {
         public:
-            Display_Results(std::string description) :
-                Command(description) { }
-
-            void execute(CLI::Settings& settings) override;
-    };
-    
-    class Download_Results : public Command {
-        public:
-            Download_Results(std::string description) :
-                Command(description) { }
+            Display_Results(T& io_device, std::string description) :
+                Command(io_device, description) { }
 
             void execute(CLI::Settings& settings) override;
     };
     
-    class Display_Confusion_Matrix : public Command {
+    template <typename T>
+    class Download_Results : public Command<T> {
         public:
-            Display_Confusion_Matrix(std::string description) :
-                Command(description) { }
+            Download_Results(T& io_device, std::string description) :
+                Command(io_device, description) { }
+
+            void execute(CLI::Settings& settings) override;
+    };
+    
+    template <typename T>
+    class Display_Confusion_Matrix : public Command<T> {
+        public:
+            Display_Confusion_Matrix(T& io_device, std::string description) :
+                Command(io_device, description) { }
 
             void execute(CLI::Settings& settings) override;
     };
