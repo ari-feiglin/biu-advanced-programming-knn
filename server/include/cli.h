@@ -3,6 +3,9 @@
 #include "knn.h"
 
 namespace knn {
+    typedef DataSet<misc::array<double>> dubdset;
+    typedef DataPoint<misc::array<double>> dubdpoint;
+
     /**
      * The DefaultIO interface provides the following interfaces:
      * + << : writing to the defaultIO
@@ -15,6 +18,18 @@ namespace knn {
      * + close_output() : closes the output file
      */
 
+    class DefaultIO {
+        public:
+            virtual DefaultIO& operator<<(std::string) =0;
+            virtual DefaultIO& operator>>(std::string&) =0;
+            virtual void open_input(std::string) =0;
+            virtual std::string read() =0;
+            virtual void close_input() =0;
+            virtual void open_output(std::string) =0;
+            virtual void write(std::string) =0;
+            virtual void close_output() =0;
+    };
+
     using streams::SerializationTokens;
 
     /**
@@ -23,13 +38,11 @@ namespace knn {
      * or must send.
      * The tokens it sends to denote classes are those used defined by the ClassTokens enum.
      */
-    class DefaultSocketIO {
-        static std::map<std::type_info, int> class_map;
-
-        Serializer m_serializer;
+    class DefaultSocketIO : public DefaultIO {
+        streams::Serializer m_serializer;
 
         public:
-            DefaultSocketIO(Stream* s) {
+            DefaultSocketIO(streams::Stream* s) {
                 this->m_serializer(s);
             }
 
@@ -40,10 +53,9 @@ namespace knn {
              * @param t     The object to deserialize.
              * @return      A reference to this.
              */
-            template <typename T>
-            DefaultSocketIO& operator>>(T t) {
-                this->m_serializer << class_map[typeid(T)];
-                this->m_serializer >> t;
+            DefaultSocketIO& operator>>(std::string& s) {
+                this->m_serializer << SerializationTokens::send_token;
+                this->m_serializer >> s;
                 return *this;
             }
 
@@ -54,9 +66,8 @@ namespace knn {
              * @param t     The object to serialize.
              * @return      A reference to this.
              */
-            template <typename T>
-            DefaultSocketIO& operator<<(T t) {
-                this->m_serializer << SerializationTokens::send_token << class_map[typeid(T)] << t;
+            DefaultSocketIO& operator<<(std::string s) {
+                this->m_serializer << SerializationTokens::receive_token << s;
                 return *this;
             }
 
@@ -74,26 +85,21 @@ namespace knn {
             void close_output() { this->m_serializer << SerializationTokens::end_token; }
     };
 
-    std::map<std::type_info, int> DefaultSocketIO::class_map = {{typeid(int), SerializationTokens::int_token},
-                                                                  {typeid(std::string), SerializationTokens::string_token}};
-
     /**
-     * The DefaultFileIO implements the DefaultIO interface on files.
+     * The DefaultTerminalIO implements the DefaultIO interface on files.
      */
-    public DefaultFileIO {
-        std::ifstream& m_input;
-        std::ofstream& m_output;
+    class DefaultTerminalIO : public DefaultIO {
+        std::istream& m_input;
+        std::ostream& m_output;
         std::ifstream m_file_input;
         std::ofstream m_file_output;
 
         public:
-            DefaultFileIO(std::ifstream& input=std::cin, std::ofstream& output=std::cout) :
+            DefaultTerminalIO(std::istream& input=std::cin, std::ostream& output=std::cout) :
                 m_input(input), m_output(output) { }
 
-            template <typename T>
-            DefaultFileIO& operator<<(T t) { this->m_output << t; return *this; }
-            template <typename T>
-            DefaultFileIO& operator>>(T t) { this->m_input >> t; return *this; }
+            DefaultTerminalIO& operator<<(std::string s) { this->m_output << s; return *this; }
+            DefaultTerminalIO& operator>>(std::string& s) { this->m_input >> s; return *this; }
 
             void open_input(std::string filename) { this->m_file_input.open(filename); }
             std::string read() {
@@ -104,57 +110,56 @@ namespace knn {
             void close_input() { this->m_file_input.close(); }
 
             void open_output(std::string filename) { this->m_file_output.open(filename); }
-            void write(std::string s) { this->m_file_output.write << s; }
+            void write(std::string s) { this->m_file_output << s; }
             void close_output() { this->m_file_output.close(); }
     };
 
     class Command;
     
-    template <typename T>
     class CLI {
-        std::vector<Command<T>*> m_commands;
+        std::vector<Command*> m_commands;
 
         public:
             template <typename... Commands>
-            CLI(DataSet* dataset, Commands*... commands) :
-                m_dataset{dataset}, m_commands{ {commands...} } { }
+            CLI(Commands*... commands) :
+                m_commands{ {commands...} } { }
 
             /**
              * Starts the CLI.
-             * @param server        The server connected to.
+             * @param dataset       The datatset.
+             * @param dio           The IO device to use.
              * @param exit_name     What to display for the exit option.
              */
-            void start(streams::TCPSocket server, std::string exit_name="exit");
+            void start(DataSet<misc::array<double>>* dataset, DefaultIO& dio, std::string exit_name="exit");
 
-            // This class must be public so Command-derived classes can access it.
+            /**
+             * This class must be public so Command-derived classes can access it.
+             * Stores important information to pass to each command.
+             */
             struct Settings {
-                int k_value;                            // The k value to use in the algorithm
-                std::string distance_metric;            // The identifier for the distance metric (EUC, etc)
-                std::string train_file;                 // The file to train the database with (unclassified)
-                std::string test_file;                  // The file to test the database with (classified)
-                bool is_classified;                     // Whether or not the data has been classified already
-                std::vector<std::string> true_names;          // A vector of the true class names
-                std::vector<std::string> classified_names;    // A vector of the classified names
+                DefaultIO& dio;                                 // The io device to use
+                int k_value;                                    // The k value to use in the algorithm
+                double (*distance_metric)(const dubdpoint*, const dubdpoint*);
+                std::string distance_metric_name;
+                std::string train_file;                         // The file to train the database with (unclassified)
+                std::string test_file;                          // The file to test the database with (classified)
+                bool is_classified;                             // Whether or not the data has been classified already
+                std::vector<std::string> true_names;            // A vector of the true class names
+                std::vector<std::string> classified_names;      // A vector of the classified names
                 knn::DataSet<misc::array<double>>* data_set;    // The data set
 
-                Settings() :
-                    is_classified(false) { }
-
-                Settings(int k, std::string distance) :
-                    k_value(k), distance_metric(distance), is_classified(false) { }
+                Settings(knn::DataSet<misc::array<double>>* dataset, DefaultIO& io, int k,
+                        double (*distance)(const dubdpoint*, const dubdpoint*), std::string distance_name) :
+                    dio(io), data_set(dataset), k_value(k), distance_metric(distance), distance_metric_name(distance_name), is_classified(false) { }
             };
     };
 
-    template <typename T>
     class Command {
         std::string m_description;
 
-        protected:
-            T& m_io_device;
-
         public:
-            Command(T& io_device, std::string description) :
-                m_io_device(io_device), m_description(description) { }
+            Command(std::string description) :
+               m_description(description) { }
 
             /**
              * Execute the command.
@@ -167,57 +172,51 @@ namespace knn {
              */
             std::string get_description() { return this->m_description; }
     };
-
-    template <typename T>
-    class Upload_Files : public Command<T> {
+    
+    class Upload_Files : public Command {
         public:
-            Upload_Files(T& io_device, std::string description) :
-                Command(io_device, description) { }
+            Upload_Files(std::string description) :
+                Command(description) { }
 
             void execute(CLI::Settings& settings) override;
     };
 
-    template <typename T>
-    class Algorithm_Settings : public Command<T> {
+    class Algorithm_Settings : public Command {
         public:
-            Algorithm_Settings(T& io_device, std::string description) :
-                Command(io_device, description) { }
+            Algorithm_Settings(std::string description) :
+                Command(description) { }
 
             void execute(CLI::Settings& settings) override;
     };
 
-    template <typename T>
-    class Classify_Data : public Command<T> {
+    class Classify_Data : public Command {
         public:
-            Classify_Data(T& io_device, std::string description) :
-                Command(io_device, description) { }
+            Classify_Data(std::string description) :
+                Command(description) { }
 
             void execute(CLI::Settings& settings) override;
     };
 
-    template <typename T>
-    class Display_Results : public Command<T> {
+    class Display_Results : public Command {
         public:
-            Display_Results(T& io_device, std::string description) :
-                Command(io_device, description) { }
+            Display_Results(std::string description) :
+                Command(description) { }
 
             void execute(CLI::Settings& settings) override;
     };
     
-    template <typename T>
-    class Download_Results : public Command<T> {
+    class Download_Results : public Command {
         public:
-            Download_Results(T& io_device, std::string description) :
-                Command(io_device, description) { }
+            Download_Results(std::string description) :
+                Command(description) { }
 
             void execute(CLI::Settings& settings) override;
     };
     
-    template <typename T>
-    class Display_Confusion_Matrix : public Command<T> {
+    class Display_Confusion_Matrix : public Command {
         public:
-            Display_Confusion_Matrix(T& io_device, std::string description) :
-                Command(io_device, description) { }
+            Display_Confusion_Matrix(std::string description) :
+                Command(description) { }
 
             void execute(CLI::Settings& settings) override;
     };

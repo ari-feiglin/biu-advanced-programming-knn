@@ -4,6 +4,7 @@
 #include "knn.h"
 
 namespace knn {
+    template <typename T>
     CartDataPoint<T>* get_point(std::string str, T (*converter)(std::string), bool classified) {
         int prev_index = str.find(',');
         int curr_index = 0;
@@ -13,6 +14,7 @@ namespace knn {
 
         while ((curr_index = str.find(',', prev_index + 1)) != std::string::npos) {
             data.push_back(converter(str.substr(prev_index + 1, curr_index - prev_index - 1)));
+            prev_index = curr_index;
         }
 
         if (classified) {

@@ -6,14 +6,13 @@
 #include "streams.h"
 
 namespace streams {
-    enum SerializationTokens = {send_token,
-                                int_token,
-                                string_token,
-                                open_file_w_token,
-                                open_file_r_token,
-                                write_file_token,
-                                read_file_token,
-                                end_token};
+    enum SerializationTokens {send_token,
+                              receive_token,
+                              open_file_w_token,
+                              open_file_r_token,
+                              write_file_token,
+                              read_file_token,
+                              end_token};
 
     /**
      * Class for serializing objects.
@@ -35,7 +34,7 @@ namespace streams {
              */
             Serializer() : m_stream(nullptr) { }
 
-            Serializer(const Serializer& other) { this->m_stream = other->m_stream; }
+            Serializer(const Serializer& other) { this->m_stream = other.m_stream; }
 
             /**
              * Operator to set the current stream of the Serializer.
@@ -110,6 +109,11 @@ namespace streams {
             static T* null_pointer;
             static size_t no_size;
     };
+
+    template <typename T>
+    T* streams::SerializablePointer<T>::null_pointer = nullptr;
+    template <typename T>
+    size_t streams::SerializablePointer<T>::no_size = 0;
 
     template <typename T>
     Serializer& operator<<(Serializer& s, const SerializablePointer<T> sp) {

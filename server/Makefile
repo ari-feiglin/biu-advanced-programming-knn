@@ -1,16 +1,16 @@
-PROJECT_NAME = ../knnserver
+PROJECT_NAME = test#../knnserver
 CC = g++
-INCLUDE_DIR = include ../include
+INCLUDE_DIR = ./include ../include
 SRC_DIR = ./src
-LIB_DIR = ../lib
+LIB_DIR = ../lib ./lib
 OBJ_DIR = ./build
 LIB_OBJ_DIR = ../build
 
-CFLAGS := -g -std=c++11 -pthread $(patsubst %,-I%,$(INCLUDE_DIR)) -I$(LIB_DIR)
+CFLAGS := -g -std=c++11 -pthread $(patsubst %,-I%,$(INCLUDE_DIR)) $(patsubst %,-I%,$(LIB_DIR))
 
-DEPS := $(wildcard $(LIB_DIR)/*.tpp) $(wildcard $(patsubst %,%/*.h,$(INCLUDE_DIR)))
+DEPS := $(wildcard $(patsubst %,%/*.tpp,$(LIB_DIR))) $(wildcard $(patsubst %,%/*.h,$(INCLUDE_DIR)))
 
-LIB_SRC := $(wildcard $(LIB_DIR)/*.cpp) 
+LIB_SRC := $(wildcard $(patsubst %,%/*.cpp,$(LIB_DIR))) 
 SRC_SRC := $(wildcard $(SRC_DIR)/*.cpp)
 SRC := $(LIB_SRC) $(SRC_SRC)
 
