@@ -20,42 +20,22 @@ int main(int argc, char** argv) {
     while (true) {
         serializer >> token;
 
-        // just prints int
-        if (token == int_token) {
-            int print_int;
-            serializer >> print_int;
-            std::cout << print_int;
-            continue;
-        }
-
         // just prints string
-        if (token == string_token) {
+        if (token == receive_token) {
             std::string print_string;
             serializer >> print_string;
             std::cout << print_string;
             continue;
         }
 
-        // sends something
+        // sends string
         if (token == send_token) {
-            serializer >> token;
-            
-            // sends int
-            if (token == int_token) {
-                int send_int;
-                std::cin >> send_int;
-                serializer << send_int;
-                continue;
-            }
-
-            // sends string
-            if (token == string_token) {
                 std::string send_string;
                 std::cin >> send_string;
                 serializer << send_string;
                 continue;
-            }
         }
+        
     }
 
 }
