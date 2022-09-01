@@ -6,7 +6,7 @@
 #include "streams.h"
 
 namespace streams {
-    enum SerializationTokens = {send_token,
+    enum SerializationTokens    {send_token,
                                 int_token,
                                 string_token,
                                 open_file_w_token,
