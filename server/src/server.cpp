@@ -6,6 +6,7 @@
 
 using namespace streams;
 using namespace threading;
+using namespace knn;
 
 template <typename T>
 T* SerializablePointer<T>::null_pointer = nullptr;
@@ -49,14 +50,27 @@ int main(int argc, char** argv) {
 
     TCPSocket server = TCPSocket(argv[1], strtol(argv[2], NULL, 0));
     server.listening(10);
-
-    //ThreadPool thread_pool{50}; // Commented this out since we havent fully implemented the threading yet
+    
+    ThreadPool thread_pool{50};
+    
+    Upload_Files com1{"upload an unclassified csv file"};
+    Algorithm_Settings com2{"algorithm settings"};
+    Classify_Data com3{"classify data"};
+    Display_Results com4{"display results"};
+    Download_Results com5{"download results"};
+    Display_Confusion_Matrix com6{"display confusion matrix"};
     
     while (true) {
         TCPSocket client = server.accept_connection(300); // times out after 5 minutes with no connection
         Address addr = client.get_address();
         std::cout << addr.ip << ":" << addr.port << " connected." << std::endl;
         serializer(&client);
+        // assigning a thread for each new client.
+        thread_pool.add_job(CLI::start, CLI(&data_set, serializer, &com1, &com2, &com3, &com4, &com5, &com6));
+
+
+        
+
         char token;
         knn::CartDataPoint<double> data_point;
 
