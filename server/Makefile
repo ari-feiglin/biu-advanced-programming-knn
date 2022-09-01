@@ -1,4 +1,4 @@
-PROJECT_NAME = test#../knnserver
+PROJECT_NAME = ../knnserver
 CC = g++
 INCLUDE_DIR = ./include ../include
 SRC_DIR = ./src

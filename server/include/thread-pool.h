@@ -18,7 +18,7 @@ namespace threading {
             Job() { }
 
             template <typename... Params>
-            Job(std::function<void(Params...)> job, Params... params) {
+            Job(void (*job)(Params...), Params... params) {
                 this->m_job = [job, params...]() { (job)(params...); };
             }
 
@@ -59,7 +59,9 @@ namespace threading {
              * @param params        The parameters to pass to the job.
              */
             template <typename... Params>
-            void add_job(std::function<void(Params...)>& job, Params... params);
+            void add_job(void (*job)(Params...), Params... params);
     };
 }
+
+#include "thread-pool.tpp"
 

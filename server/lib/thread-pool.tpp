@@ -1,4 +1,4 @@
-#include "thread-pool.h"
+#pragma once
 
 namespace threading {
     ThreadPool::ThreadPool(unsigned int num_threads) : should_terminate{false} {
@@ -29,7 +29,7 @@ namespace threading {
     }
 
     template <typename... Params>
-    void ThreadPool::add_job(std::function<void(Params...)>& job, Params... params) {
+    void ThreadPool::add_job(void (*job)(Params...), Params... params) {
         {
             /* Lock the jobs queue since it is shared readable/writable memory */
             std::unique_lock<std::mutex> lock{this->jobs_mutex};

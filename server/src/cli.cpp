@@ -195,13 +195,17 @@ namespace knn {
     
         /* Print the confusion matrix */
         for (int i = 0; i < classes.size(); i++) {
+            std::string line;
             for (int j = 0; j < classes.size(); j++) {
-                /*if (true_count[i] > 0) printf("|%5ld|", (100 * confusion_matrix[i][j]) / true_count[i]);
-                else if (confusion_matrix[i][j] == 0) printf("|    0|");
-                else printf("|  inf|");*/
-                printf("|%5ld|", confusion_matrix[i][j]);
+                std::string num;
+                if (true_count[i] > 0) num = std::to_string((100 * confusion_matrix[i][j]) / true_count[i]) + "%";
+                else if (confusion_matrix[i][j] == 0) num = "0%";
+                else num = "inf";
+                line += std::string("|") + std::string((8 - num.length()) / 2, ' ') + num +
+                    std::string(8 - (8 - num.length()) / 2, ' ');
             }
-            putchar('\n');
+
+            settings.dio << line + "|\n";
     
             delete[] confusion_matrix[i];
         }
