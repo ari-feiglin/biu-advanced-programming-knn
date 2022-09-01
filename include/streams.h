@@ -78,6 +78,7 @@ namespace streams {
 
     class TCPSocket : public Stream {
         int fd;
+        bool is_orig;
 
         /**
          * Constructor for creating TCP sockets out of file descriptors.
@@ -107,9 +108,9 @@ namespace streams {
             TCPSocket(std::string ip, int port, std::string dest_ip, int dest_port) :
                 TCPSocket(ip.c_str(), port, dest_ip.c_str(), dest_port) { }
 
-            TCPSocket(const TCPSocket& other) : fd(other.fd) { }
+            TCPSocket(const TCPSocket& other) : fd(other.fd), is_orig(false) { }
 
-            ~TCPSocket() { this->close(); }
+            ~TCPSocket() { if(this->is_orig) this->close(); }
 
             /**
              * Wrapper around C's listen function (literally just call listen(this->fd, buffer))

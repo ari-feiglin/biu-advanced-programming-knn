@@ -161,8 +161,7 @@ void Download_Results::execute(CLI::Settings& settings) {
     std::string results_path;
     std::cout << "Please type the path for saving the results." << std::endl;
     std::cin >> results_path;
-    results_path.append("results.txt");
-    results.open((results_path));
+    results.open(results_path);
 
     int length = settings.classified_names.size();
     for (int i = 0; i < length; i++) {

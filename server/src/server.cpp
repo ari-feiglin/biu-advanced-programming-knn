@@ -35,10 +35,9 @@ int main(int argc, char** argv) {
     Serializer serializer = Serializer();
 
     using distance_func = double (*)(const knn::DataPoint<misc::array<double>>*, const knn::DataPoint<misc::array<double>>*);
-    std::map<std::string, distance_func> distance_metric_map;
-    distance_metric_map["EUC"] = distances::euclidean_distance;
-    distance_metric_map["MAN"] = distances::manhattan_distance;
-    distance_metric_map["CHE"] = distances::chebyshev_distance;
+    std::map<std::string, distance_func> distance_metric_map = { {"EUC", distances::euclidean_distance},
+                                                                 {"MAN", distances::manhattan_distance},
+                                                                 {"CHE", distances::chebyshev_distance}};
 
     // TBD
     int k;
@@ -73,7 +72,6 @@ int main(int argc, char** argv) {
                 }
                 // else its 1 and we can get data point and return it as usual
                 serializer >> data_point;
-                std::cout << distance_metric << std::endl;
                 serializer << data_set->get_nearest_class(k, &data_point, distance_metric_map[distance_metric]);
             } catch (std::ios_base::failure e) {
                 break;

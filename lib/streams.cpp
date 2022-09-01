@@ -9,7 +9,7 @@
 
 namespace streams {
     // server
-    TCPSocket::TCPSocket(const char* ip, int port) {
+    TCPSocket::TCPSocket(const char* ip, int port) : is_orig(true) {
         this->fd = socket(AF_INET, SOCK_STREAM, 0);
         if (this->fd < 0) {
             throw std::ios_base::failure("error encountered while initializing socket, errno: " +
