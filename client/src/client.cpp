@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 
     while (true) {
         serializer >> token;
-
+        
         // just prints string
         if (token == receive_token) {
             std::string print_string;
@@ -30,12 +30,49 @@ int main(int argc, char** argv) {
 
         // sends string
         if (token == send_token) {
-                std::string send_string;
-                std::cin >> send_string;
-                serializer << send_string;
-                continue;
+            std::string send_string;
+            std::cin >> send_string;
+            serializer << send_string;
+            continue;
         }
-        
+
+        // wants input from file
+        if (token == open_file_r_token) {
+            std::string file_path;
+            serializer >> file_path;
+            std::ifstream file;
+            file.open(file_path);
+            serializer >> token;
+            std::string line;
+            while (token != end_token) {
+                std::getline(file, line);
+                serializer << line;
+                serializer >> token;
+            }
+            file.close();
+            continue;
+        }
+
+        // wants to write to file
+        if (token == open_file_w_token) {
+            std::string file_path;
+            serializer >> file_path;
+            std::ofstream file(file_path);
+            serializer >> token;
+            std::string line;
+            while (token != end_token) {
+                serializer >> line;
+                file << line;
+                serializer >> token;
+            }
+            file.close();
+            continue;
+        }
+
+        // wants to exit
+        if (token == end_token) {
+            break;
+        }
     }
 
 }
