@@ -30,7 +30,10 @@ namespace threading {
     
             void operator()() { this->m_job(); }
     };
-    
+ 
+    /**
+     * Thread pool for synchronous execution of tasks.
+     */
     class ThreadPool {
         bool should_terminate;
         std::mutex jobs_mutex;

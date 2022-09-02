@@ -3,6 +3,7 @@
 
 The current branch has the source for the second assignment.
 For the first assignment's source, please navigate to the `assignment1-submission` branch.
+For the second assignment's source, please navigate to the `assignment2-submission` branch.
 
 ## Compiling and Running The Project
 
@@ -19,31 +20,28 @@ To run the `knnserver` you must provide the following command line arguments:
 + The server IP
 + The server port
 + The classified file (the csv file which contains data of already classified object)
-+ And a k-value
 
 So for example running:
 
 ```bash
-$ ./knnserver 127.0.0.1 1234 ./classified.csv 3
+$ ./knnserver 127.0.0.1 1234 ./classified.csv
 ```
 
-Runs the `knnserver` on IP address `127.0.0.1` and port `1234`, gets the classified data from `./classified.csv` and runs the knn algorithm with a k-value of 3.
+Runs the `knnserver` on IP address `127.0.0.1` and port `1234`, and gets the classified data from `./classified.csv`.
 
 To run the `knnclient` you must provide the following:
 
 + The client's IP
 + The server's IP
 + The server's port
-+ The unclassified file
-+ The file to output the classified information
 
 For example:
 
 ```bash
-$ ./knnclient 127.0.0.1 127.0.0.1 1234 ./unclassified.csv ./output.csv
+$ ./knnclient 127.0.0.1 127.0.0.1 1234
 ```
 
-Will connect the client to the server set up by the previous command and will output the classification of the objects in `./unclassified.csv` into `./output.csv`.
+Will connect the client to the server set up by the previous command.
 
 ## General Structure
 
@@ -56,14 +54,22 @@ The project is split into four main directories:
     The `lib` directory has files which are meant to be portable/be shared between the client and server.
     These are the files which contain implementations of the template methods declared in the various header files in the `include` directory which have not been defined.
     It also includes `.cpp` files for implementations of non-template member functions declared in various header files.
-+ **The `src` directory** - 
-    In the `src` directory we have `.cpp` files that implement all of the program-dependent part of the project, that includes the `main` and other program-dependent processes.
++ **The `server` directory**
+    In the `server` directory are all of the files necessary for the server.
+    This directory is also split into its own `include`, `lib`, and `src` directories.
++ **The `client` directory**
+    In the `client` directory are all of the files necessary for the client.
+    Since the client doesn't have any header files, it only has a `src` directory.
 
 ## Optimization
 
 In an attempt to optimize the run time of the program we implemented the Quickselect algorithm.
 We implemented its random form (choosing a pivot randomly) as according to the internet in practice this is more efficient than the median of medians approach, despite it having worse time complexity in theory.
 The source can be found in [knn-algo.h](./include/knn-algo.h).
+
+We also implemented a `ThreadPool` class for managing a thread pool.
+Thus whenever a client connects to the server, a job is added to the thread pool to manage the client.
+More information can be found in this project's wiki.
 
 ## Code Overview
 
@@ -116,6 +122,19 @@ These are all template methods intended to be versatile.
 Them being template methods also doesn't add any more complexity on our part (just for the compiler and your memory) so it was a win-win for us.
 The functions can be found in [knn-io.tpp](./lib/knn-io.tpp).
 
+For interacting with the client, we essentially made the client a "blind follower" to the server's instructions.
+The server sends tokens to the client telling it what basic operations to do, and the client does these operations blindly.
+These operations include:
+
++ Reading input from the server and printing it.
++ Sending user input to the server.
++ Opening a file for reading, and sending lines from it to the server.
++ Opening a file for writing, and writing data sent to the client from the server into it.
++ Close a file it has opened.
++ Exiting.
+
+This is useful as it allows the server to act as if the client exists locally.
+
 ### Streams and Serialization
 
 We also implemented streams and serilialization methods, detail on which can be found in this repository's wiki.
@@ -124,5 +143,6 @@ We also implemented streams and serilialization methods, detail on which can be 
 
 Because of the serialization we implemented, buffering was redundant and therefore not used.
 This is because the amount of data needed to be read is known at run time, as per our implementation of serialization for various objects.
-The port is left up to the user to determine, and the timeout for the socket was not specified (this may change for the next assignment when the server needs to actually be good).
+The port is left up to the user to determine, and we defined the timeout for the server to be 300 seconds, or 5 minutes.
+Our thread pool has 50 threads in it and therefore the server can handle 50 clients simultaneously.
 

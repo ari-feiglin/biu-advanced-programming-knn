@@ -4,6 +4,15 @@
 
 namespace knn {
     /**
+     * Reads a Cartesian Data Point from a string.
+     * @param str               The string to read from.
+     * @param converter         Converter from string to the correct type.
+     * @param classified        Whether or not the datapoint should be classified.
+     */
+    template <typename T>
+    CartDataPoint<T>* get_point(std::string str, T (*converter)(std::string), bool classified);
+
+    /**
      * Classifies points relative to different distances.
      * @param classified            File name of classified points to initialize a Data Set with.
      * @param unclassified          File name of unclassified points to classify.

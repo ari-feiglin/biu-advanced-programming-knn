@@ -1,13 +1,12 @@
 #include "cli.h"
-#include "distances.h"
 
 #include <set>
 #include <vector>
 
 namespace knn {
-    double stod(std::string s) { std::stod(s); }
+    double stod(std::string s) { return std::stod(s); }
 
-    void CLI::start(DataSet<misc::array<double>>* data_set, DefaultIO& io_device, std::string exit_name) {
+    void CLI::start(dubdset* data_set, DefaultIO& io_device, std::string exit_name) {
         CLI::Settings settings{data_set, io_device, 5, distances::euclidean_distance, "EUC"};
     
         while (true) {
@@ -23,9 +22,9 @@ namespace knn {
             settings.dio >> s_choice;
             int choice = std::stoi(s_choice);
     
-            if (choice <= 0 || choice > this->m_commands.size() + 1)
+            if (choice <= 0 || choice > (int)this->m_commands.size() + 1)
                 settings.dio << "\e[31;1mInvalid Command\e[0m\n";
-            else if (choice == this->m_commands.size() + 1) break;
+            else if (choice == (int)this->m_commands.size() + 1) break;
             else this->m_commands.at(choice-1)->execute(settings);
         }
     }
@@ -66,7 +65,7 @@ namespace knn {
                   std::to_string(settings.k_value) + ", distance metric = " +
                   settings.distance_metric_name + "\n";
 
-        std::map<std::string, double (*)(const knn::DataPoint<misc::array<double>>*, const knn::DataPoint<misc::array<double>>*)> distance_map =
+        std::map<std::string, double (*)(const dubdpoint*, const dubdpoint*)> distance_map =
             {{"EUC", distances::euclidean_distance}, {"MAN", distances::manhattan_distance}, {"CHE", distances::chebyshev_distance}};
         
         while (true) {
@@ -144,7 +143,7 @@ namespace knn {
     
         int length = settings.classified_names.size();
         for (int i = 0; i < length; i++) {
-            settings.dio << std::to_string(i + 1) + "\t" + settings.classified_names[i] + "\n";
+            settings.dio.write(std::to_string(i + 1) + "\t." + settings.classified_names[i] + "\n");
         }
         
         settings.dio.close_output();
@@ -162,14 +161,15 @@ namespace knn {
         std::string true_class;
     
         settings.dio.open_input(settings.test_file);
-        int i = 0;
+        size_t i = 0;
         /* Get all class names as well as the true classes */
         for (; (true_class = settings.dio.read()) != ""; i++) {
             true_classes.push_back(true_class);
             classes.insert(true_class);
             classes.insert(settings.classified_names[i]);
         }
-    
+        settings.dio.close_input();
+
         if (i != settings.classified_names.size())
             settings.dio << std::string("\e[31;1mMismatch between number of classified and true classes.\e[0m Have ") +
                 std::to_string(settings.classified_names.size())  + " and "  + std::to_string(i) +
@@ -188,21 +188,21 @@ namespace knn {
         }
     
         /* Compute the confusion matrix */
-        for (int i = 0; i < true_classes.size(); i++) {
+        for (size_t i = 0; i < true_classes.size(); i++) {
             confusion_matrix[class_order[true_classes[i]]][class_order[settings.classified_names[i]]]++;
             true_count[class_order[true_classes[i]]]++;
         }
     
         /* Print the confusion matrix */
-        for (int i = 0; i < classes.size(); i++) {
+        for (size_t i = 0; i < classes.size(); i++) {
             std::string line;
-            for (int j = 0; j < classes.size(); j++) {
+            for (size_t j = 0; j < classes.size(); j++) {
                 std::string num;
                 if (true_count[i] > 0) num = std::to_string((100 * confusion_matrix[i][j]) / true_count[i]) + "%";
                 else if (confusion_matrix[i][j] == 0) num = "0%";
                 else num = "inf";
                 line += std::string("|") + std::string((8 - num.length()) / 2, ' ') + num +
-                    std::string(8 - (8 - num.length()) / 2, ' ');
+                    std::string(8 - num.length() - (8 - num.length()) / 2, ' ');
             }
 
             settings.dio << line + "|\n";

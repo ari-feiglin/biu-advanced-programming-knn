@@ -51,7 +51,7 @@ namespace misc {
                 this->m_len = arr.m_len;
                 this->m_arr = new T[this->m_len];
 
-                for (int i = 0; i < this->m_len; i++) {
+                for (size_t i = 0; i < this->m_len; i++) {
                     this->m_arr[i] = arr.m_arr[i];
                 }
             }
@@ -193,7 +193,7 @@ namespace misc {
 
     template <typename T>
     streams::Serializer& operator>>(streams::Serializer& s, array<T>& arr) {
-        if (arr.m_len > 0) delete[] arr.m_arr; arr.m_len = 0;
+        if (arr.m_len > 0) { delete[] arr.m_arr; arr.m_len = 0; }
         s >> arr.m_len;
         arr.m_arr = new T[arr.m_len];
 

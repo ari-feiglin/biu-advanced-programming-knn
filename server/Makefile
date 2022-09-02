@@ -6,7 +6,7 @@ LIB_DIR = ../lib ./lib
 OBJ_DIR = ./build
 LIB_OBJ_DIR = ../build
 
-CFLAGS := -g -std=c++11 -pthread $(patsubst %,-I%,$(INCLUDE_DIR)) $(patsubst %,-I%,$(LIB_DIR))
+CFLAGS := -g -std=c++11 -pthread -Wall $(patsubst %,-I%,$(INCLUDE_DIR)) $(patsubst %,-I%,$(LIB_DIR))
 
 DEPS := $(wildcard $(patsubst %,%/*.tpp,$(LIB_DIR))) $(wildcard $(patsubst %,%/*.h,$(INCLUDE_DIR)))
 

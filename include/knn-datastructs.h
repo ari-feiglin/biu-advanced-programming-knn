@@ -101,7 +101,7 @@ namespace knn {
             DataSet(std::vector<DataPoint<T>*>&& vec) : m_data(vec) { }
 
             ~DataSet() {
-                for (int i = 0; i < this->m_data.size(); i++) {
+                for (size_t i = 0; i < this->m_data.size(); i++) {
                     delete this->m_data[i];
                 }
             }

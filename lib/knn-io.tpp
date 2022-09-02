@@ -6,8 +6,8 @@
 namespace knn {
     template <typename T>
     CartDataPoint<T>* get_point(std::string str, T (*converter)(std::string), bool classified) {
-        int prev_index = str.find(',');
-        int curr_index = 0;
+        size_t prev_index = str.find(',');
+        size_t curr_index = 0;
         std::vector<T> data;
 
         data.push_back(converter(str.substr(0, prev_index)));

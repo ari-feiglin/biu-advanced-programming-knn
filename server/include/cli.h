@@ -1,13 +1,11 @@
 #pragma once
 
 #include "knn.h"
+#include "distances.h"
 
 namespace knn {
-    typedef DataSet<misc::array<double>> dubdset;
-    typedef DataPoint<misc::array<double>> dubdpoint;
-
     /**
-     * The DefaultIO interface provides the following interfaces:
+     * The DefaultIO interface provides the following methods:
      * + << : writing to the defaultIO
      * + >> : reading from the defaultIO
      * + open_input(filename) : opens a file for input
@@ -17,7 +15,6 @@ namespace knn {
      * + write(str) : writes str to the output file
      * + close_output() : closes the output file
      */
-
     class DefaultIO {
         public:
             virtual DefaultIO& operator<<(std::string) =0;
@@ -33,10 +30,7 @@ namespace knn {
     using streams::SerializationTokens;
 
     /**
-     * The DefaultSocketIO class is a wrapper around the Serializer class which
-     * allows for the receiving end of the serialization to know what it is to receive
-     * or must send.
-     * The tokens it sends to denote classes are those used defined by the ClassTokens enum.
+     * The DefaultSocketIO provides DefaultIO for Stream subclasses.
      */
     class DefaultSocketIO : public DefaultIO {
         streams::Serializer m_serializer;
@@ -71,18 +65,18 @@ namespace knn {
                 return *this;
             }
 
-            void open_input(std::string filename) { this->m_serializer << SerializationTokens::open_file_r_token << filename; }
-            std::string read() {
+            void open_input(std::string filename) override { this->m_serializer << SerializationTokens::open_file_r_token << filename; }
+            std::string read() override {
                 this->m_serializer << SerializationTokens::read_file_token;
                 std::string s;
                 this->m_serializer >> s;
                 return s;
             }
-            void close_input() { this->m_serializer << SerializationTokens::end_token; }
+            void close_input() override { this->m_serializer << SerializationTokens::end_token; }
 
-            void open_output(std::string filename) { this->m_serializer << SerializationTokens::open_file_w_token << filename; }
-            void write(std::string s) { this->m_serializer << SerializationTokens::write_file_token << s; }
-            void close_output() { this->m_serializer << SerializationTokens::end_token; }
+            void open_output(std::string filename) override { this->m_serializer << SerializationTokens::open_file_w_token << filename; }
+            void write(std::string s) override { this->m_serializer << SerializationTokens::write_file_token << s; }
+            void close_output() override { this->m_serializer << SerializationTokens::end_token; }
     };
 
     /**
@@ -98,28 +92,35 @@ namespace knn {
             DefaultTerminalIO(std::istream& input=std::cin, std::ostream& output=std::cout) :
                 m_input(input), m_output(output) { }
 
-            DefaultTerminalIO& operator<<(std::string s) { this->m_output << s; return *this; }
-            DefaultTerminalIO& operator>>(std::string& s) { this->m_input >> s; return *this; }
+            DefaultTerminalIO& operator<<(std::string s) override { this->m_output << s; return *this; }
+            DefaultTerminalIO& operator>>(std::string& s) override { this->m_input >> s; return *this; }
 
-            void open_input(std::string filename) { this->m_file_input.open(filename); }
-            std::string read() {
+            void open_input(std::string filename) override { this->m_file_input = std::ifstream(filename); }
+            std::string read() override {
                 std::string s;
                 std::getline(this->m_file_input, s);
                 return s;
             }
-            void close_input() { this->m_file_input.close(); }
+            void close_input() override { this->m_file_input.close(); }
 
-            void open_output(std::string filename) { this->m_file_output.open(filename); }
-            void write(std::string s) { this->m_file_output << s; }
-            void close_output() { this->m_file_output.close(); }
+            void open_output(std::string filename) override { this->m_file_output = std::ofstream(filename); }
+            void write(std::string s) override { this->m_file_output << s; }
+            void close_output() override { this->m_file_output.close(); }
     };
 
     class Command;
-    
+
+    /**
+     * The CLI class provides a methods interacting with the client.
+     */
     class CLI {
         std::vector<Command*> m_commands;
 
         public:
+            /**
+             * Constructs a CLI.
+             * @param commands...       The commands to use.
+             */
             template <typename... Commands>
             CLI(Commands*... commands) :
                 m_commands{ {commands...} } { }
@@ -130,7 +131,7 @@ namespace knn {
              * @param dio           The IO device to use.
              * @param exit_name     What to display for the exit option.
              */
-            void start(DataSet<misc::array<double>>* dataset, DefaultIO& dio, std::string exit_name="exit");
+            void start(dubdset* dataset, DefaultIO& dio, std::string exit_name="exit");
 
             /**
              * This class must be public so Command-derived classes can access it.
@@ -139,6 +140,7 @@ namespace knn {
             struct Settings {
                 DefaultIO& dio;                                 // The io device to use
                 int k_value;                                    // The k value to use in the algorithm
+                dubdset* data_set;                              // The data set
                 double (*distance_metric)(const dubdpoint*, const dubdpoint*);
                 std::string distance_metric_name;
                 std::string train_file;                         // The file to train the database with (unclassified)
@@ -146,14 +148,17 @@ namespace knn {
                 bool is_classified;                             // Whether or not the data has been classified already
                 std::vector<std::string> true_names;            // A vector of the true class names
                 std::vector<std::string> classified_names;      // A vector of the classified names
-                knn::DataSet<misc::array<double>>* data_set;    // The data set
 
-                Settings(knn::DataSet<misc::array<double>>* dataset, DefaultIO& io, int k,
+                Settings(dubdset* dataset, DefaultIO& io, int k,
                         double (*distance)(const dubdpoint*, const dubdpoint*), std::string distance_name) :
-                    dio(io), data_set(dataset), k_value(k), distance_metric(distance), distance_metric_name(distance_name), is_classified(false) { }
+                    dio(io), k_value(k), data_set(dataset), distance_metric(distance),
+                    distance_metric_name(distance_name), is_classified(false) { }
             };
     };
 
+    /**
+     * Interface for Commands that the server provides.
+     */
     class Command {
         std::string m_description;
 

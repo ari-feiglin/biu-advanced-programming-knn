@@ -97,7 +97,7 @@ namespace streams {
                 return nullptr;
             }
         } else {
-            int i = 0;
+            size_t i = 0;
 
             while (i < size) {      // This will continue its loop until the number of bytes received equals the number requested.
                 bytes_read = recv(this->fd, data + i, size - i, 0);
@@ -121,7 +121,7 @@ namespace streams {
 
     void TCPSocket::send(const void* data, size_t size) {
         int bytes_sent;
-        int i = 0;
+        size_t i = 0;
 
         while (i < size) {
             bytes_sent = ::send(this->fd, (char*)data + i, size - i, 0);
