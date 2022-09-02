@@ -14,6 +14,7 @@ namespace knn {
      * + open_output(filename) : opens a file for output
      * + write(str) : writes str to the output file
      * + close_output() : closes the output file
+     * + close() : closes the DefaultIO
      */
     class DefaultIO {
         public:
@@ -25,6 +26,7 @@ namespace knn {
             virtual void open_output(std::string) =0;
             virtual void write(std::string) =0;
             virtual void close_output() =0;
+            virtual void close() =0;
     };
 
     using streams::SerializationTokens;
@@ -77,6 +79,10 @@ namespace knn {
             void open_output(std::string filename) override { this->m_serializer << SerializationTokens::open_file_w_token << filename; }
             void write(std::string s) override { this->m_serializer << SerializationTokens::write_file_token << s; }
             void close_output() override { this->m_serializer << SerializationTokens::end_token; }
+
+            void close() override {
+                this->m_serializer << SerializationTokens::end_token;
+            }
     };
 
     /**
@@ -106,6 +112,8 @@ namespace knn {
             void open_output(std::string filename) override { this->m_file_output = std::ofstream(filename); }
             void write(std::string s) override { this->m_file_output << s; }
             void close_output() override { this->m_file_output.close(); }
+
+            void close() override { }
     };
 
     class Command;

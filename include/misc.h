@@ -174,6 +174,14 @@ namespace misc {
                 }
             }
 
+            bool operator==(const array<T>& other) const {
+                if (this->m_len != other.m_len) return false;
+                for (size_t i = 0; i < this->m_len; i++) {
+                    if (this->m_arr[i] != other.m_arr[i]) return false;
+                }
+                return true;
+            }
+
             template <typename M>
             friend streams::Serializer& operator<<(streams::Serializer& s, const array<M> arr);
             template <typename M>

@@ -25,6 +25,8 @@ namespace knn {
             virtual const T& data() const =0;
 
             virtual DataPoint<T>* clone() const =0;
+
+            virtual bool operator==(const DataPoint<T>& other) const { return other.data() == this->data(); }
     };
 
     template <typename T>
@@ -112,6 +114,13 @@ namespace knn {
              * @return                  A reference to this Data Set.
              */
             DataSet& add(const DataPoint<T>* data_point);
+
+            std::string get_class(const DataPoint<T>* data_point) const {
+                for (DataPoint<T>* dp : this->m_data) {
+                    if (*dp == *data_point)  return dp->class_type();
+                }
+                return "";
+            }
             
             /**
              * Gets the k-nearest neighbors to another input Data Point.

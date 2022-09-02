@@ -12,21 +12,36 @@ namespace knn {
         while (true) {
             int i = 1;
     
-            for (auto& com : this->m_commands) {
-                settings.dio << std::to_string(i) + ".\t" + com->get_description() + "\n";
-                i++;
+            try {
+                for (auto& com : this->m_commands) {
+                    settings.dio << std::to_string(i) + ".\t" + com->get_description() + "\n";
+                    i++;
+                }
+
+                settings.dio << std::to_string(i) + ".\t" + exit_name + "\n";
+                std::string s_choice;
+                settings.dio >> s_choice;
+
+                int choice;
+                try {
+                    choice = std::stoi(s_choice);
+                } catch (std::invalid_argument e) {
+                    settings.dio << "\e[31;1mInvalid Command\e[0m\n";
+                    continue;
+                }
+
+                if (choice <= 0 || choice > (int)this->m_commands.size() + 1)
+                    settings.dio << "\e[31;1mInvalid Command\e[0m\n";
+                else if (choice == (int)this->m_commands.size() + 1) break;
+                else this->m_commands.at(choice-1)->execute(settings);
+            } catch (std::ios_base::failure e) {
+                break;
             }
-            settings.dio << std::to_string(i) + ".\t" + exit_name + "\n";
-    
-            std::string s_choice;
-            settings.dio >> s_choice;
-            int choice = std::stoi(s_choice);
-    
-            if (choice <= 0 || choice > (int)this->m_commands.size() + 1)
-                settings.dio << "\e[31;1mInvalid Command\e[0m\n";
-            else if (choice == (int)this->m_commands.size() + 1) break;
-            else this->m_commands.at(choice-1)->execute(settings);
         }
+
+        try {
+            settings.dio.close();
+        } catch (std::ios_base::failure e) { }
     }
     
     void Upload_Files::execute(CLI::Settings& settings) {
@@ -124,7 +139,7 @@ namespace knn {
         
         int length = settings.classified_names.size();
         for (int i = 0; i < length; i++) {
-            settings.dio << std::to_string(i + 1) + "\t" + settings.classified_names[i] + "\n";
+            settings.dio << std::to_string(i + 1) + ".\t" + settings.classified_names[i] + "\n";
         }
         
         settings.dio << "Done.\n";
@@ -143,7 +158,7 @@ namespace knn {
     
         int length = settings.classified_names.size();
         for (int i = 0; i < length; i++) {
-            settings.dio.write(std::to_string(i + 1) + "\t." + settings.classified_names[i] + "\n");
+            settings.dio.write(std::to_string(i + 1) + ".\t" + settings.classified_names[i] + "\n");
         }
         
         settings.dio.close_output();
