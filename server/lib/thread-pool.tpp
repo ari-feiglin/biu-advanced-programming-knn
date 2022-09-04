@@ -10,7 +10,7 @@ namespace threading {
         }
     }
 
-    ThreadPool::~ThreadPool() {
+    void ThreadPool::end() {
         /* Block so the lock is released at the end. */
         {
             /* Lock the should_terminate so it can change it.

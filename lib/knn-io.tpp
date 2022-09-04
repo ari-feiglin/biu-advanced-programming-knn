@@ -28,11 +28,11 @@ namespace knn {
     }
 
     template <typename T>
-    CartDataPoint<T>* read_point(std::ifstream& input_stream, T (*converter)(std::string), bool classified) {
+    CartDataPoint<T>* read_point(std::function<std::string(std::string&)> getline, T (*converter)(std::string), bool classified) {
         std::vector<T> data;
         std::string line;
     
-        if(!std::getline(input_stream, line)) return nullptr;
+        if(getline(line) == "") return nullptr;
     
         std::stringstream line_stream(line);
         
@@ -40,7 +40,7 @@ namespace knn {
         std::string prev_str;
     
         std::getline(line_stream, prev_str, ',');
-        
+
         while (std::getline(line_stream, curr_str, ',')) {
             data.push_back(converter(prev_str));
             prev_str = curr_str;
@@ -57,11 +57,11 @@ namespace knn {
     }
     
     template <typename T>
-    DataSet<misc::array<T>>* initialize_dataset(std::ifstream& input_stream, T (*converter)(std::string)) {
+    DataSet<misc::array<T>>* initialize_dataset(std::function<std::string(std::string&)> getline, T (*converter)(std::string)) {
         DataSet<misc::array<T>>* dataset = new DataSet<misc::array<T>>();
         CartDataPoint<T>* point;
         
-        while ((point = read_point<T>(input_stream, converter, true)) != nullptr) {
+        while ((point = read_point<T>(getline, converter, true)) != nullptr) {
             dataset->add(point);
             delete point;
         }

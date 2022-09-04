@@ -1,6 +1,7 @@
 #pragma once
 
 #include "knn.h"
+#include <functional>
 
 namespace knn {
     /**
@@ -35,15 +36,15 @@ namespace knn {
      *                          Returns null upon reaching the end of the stream.
      */
     template <typename T>
-    CartDataPoint<T>* read_point(std::ifstream& input_stream, T (*converter)(std::string), bool classified);
+    CartDataPoint<T>* read_point(std::function<std::string(std::string&)> getline, T (*converter)(std::string), bool classified);
 
     /**
      * Initializes a Data Set from an input file stream.
-     * @param input_stream      The input stream.
+     * @param getline           A function for receiving a line of input.
      * @return                  A Data Set of Cartesian Data Points read from the stream.
      */
     template <typename T>
-    DataSet<misc::array<T>>* initialize_dataset(std::ifstream& input_stream, T (*converter)(std::string));
+    DataSet<misc::array<T>>* initialize_dataset(std::function<std::string(std::string&)> getline, T (*converter)(std::string));
 }
 
 #include "knn-io.tpp"

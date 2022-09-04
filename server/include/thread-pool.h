@@ -54,7 +54,7 @@ namespace threading {
             /**
              * Destructs the thread pool and joins all the threads.
              */
-            ~ThreadPool();
+            //~ThreadPool();
 
             /**
              * Adds a job to the pool.
@@ -63,6 +63,11 @@ namespace threading {
              */
             template <typename... Params>
             void add_job(void (*job)(Params...), Params... params);
+
+            /**
+             * Stops the thread pool, joining all threads.
+             */
+            void end();
     };
 }
 

@@ -141,8 +141,7 @@ We also implemented streams and serilialization methods, detail on which can be 
 
 ## Socket Constants
 
-Because of the serialization we implemented, buffering was redundant and therefore not used.
-This is because the amount of data needed to be read is known at run time, as per our implementation of serialization for various objects.
+The size of the server's buffer is 10.
 The port is left up to the user to determine, and we defined the timeout for the server to be 300 seconds, or 5 minutes.
 Our thread pool has 50 threads in it and therefore the server can handle 50 clients simultaneously.
 

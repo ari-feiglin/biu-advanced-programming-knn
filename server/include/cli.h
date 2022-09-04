@@ -139,7 +139,7 @@ namespace knn {
              * @param dio           The IO device to use.
              * @param exit_name     What to display for the exit option.
              */
-            void start(dubdset* dataset, DefaultIO& dio, std::string exit_name="exit");
+            void start(/*dubdset* dataset, */DefaultIO& dio, std::string exit_name="exit");
 
             /**
              * This class must be public so Command-derived classes can access it.
@@ -151,15 +151,14 @@ namespace knn {
                 dubdset* data_set;                              // The data set
                 double (*distance_metric)(const dubdpoint*, const dubdpoint*);
                 std::string distance_metric_name;
-                std::string train_file;                         // The file to train the database with (unclassified)
                 std::string test_file;                          // The file to test the database with (classified)
                 bool is_classified;                             // Whether or not the data has been classified already
                 std::vector<std::string> true_names;            // A vector of the true class names
                 std::vector<std::string> classified_names;      // A vector of the classified names
 
-                Settings(dubdset* dataset, DefaultIO& io, int k,
+                Settings(DefaultIO& io, int k,
                         double (*distance)(const dubdpoint*, const dubdpoint*), std::string distance_name) :
-                    dio(io), k_value(k), data_set(dataset), distance_metric(distance),
+                    dio(io), k_value(k), data_set(nullptr), distance_metric(distance),
                     distance_metric_name(distance_name), is_classified(false) { }
             };
     };
