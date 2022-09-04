@@ -11,7 +11,6 @@ int main(int argc, char** argv) {
     }
 
     TCPSocket client = TCPSocket(argv[1], 0, argv[2], strtol(argv[3], NULL, 0));
-    std::cout << client.get_address().ip << ":" << client.get_address().port << std::endl;
     
     Serializer serializer;
     serializer(&client);

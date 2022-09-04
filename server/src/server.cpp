@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     Display_Confusion_Matrix com6{"display confusion matrix"};
     
     while (true) {
-        TCPSocket client = server.accept_connection(10); // times out after 5 minutes with no connection
+        TCPSocket client = server.accept_connection(300); // times out after 5 minutes with no connection
         if (!client.is_good()) {
             std::cout << "Server timeout exceeded, quitting..." << std::endl;
             break;
