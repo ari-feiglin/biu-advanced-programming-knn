@@ -8,14 +8,6 @@ For the second assignment's source, please navigate to the `assignment2-submissi
 
 For the second assignment's source, please navigate to the `assignment2-submission` branch.
 
-## Some (important) notes
-
-Because the assignment wasn't very clear on this matter, we weren't entirely clear on the purpose of the `train` and `test` files.
-We reached out multiple times in hopes for an answer but we did not receive a reply.
-So we assumed that the `train` file is a classified file which we build our database from.
-And we assumed the `test` file is *also* a classified file from which we get datapoints and find their k nearest neighbors in the `train` file.
-`test` must also be classified so we can get the true classes for the confusion matrix.
-
 ## Compiling and Running The Project
 
 We have provided you with a [Makefile](./Makefile) for your (and our) comfort.

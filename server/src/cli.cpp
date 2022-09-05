@@ -79,8 +79,6 @@ namespace knn {
                     }, stod);
                 settings.dio.close_input();
 
-                // resetting the classified to false
-                settings.is_classified = false;
                 settings.dio << "Upload complete\n";
             }
 
@@ -91,6 +89,9 @@ namespace knn {
         settings.dio << "Please upload your local test CSV file.\n";
         settings.dio >> settings.test_file;
         settings.dio << "Upload complete\n";
+
+        // resetting the classified to false
+        settings.is_classified = false;
     }
     
     void Algorithm_Settings::execute(CLI::Settings& settings) {
@@ -131,7 +132,6 @@ namespace knn {
 
     void Classify_Data::execute(CLI::Settings& settings) {
         settings.classified_names = std::vector<std::string>();
-        settings.true_names = std::vector<std::string>();
 
         settings.dio.open_input(settings.test_file);
     
@@ -139,8 +139,7 @@ namespace knn {
             std::string output = settings.dio.read();
             if (output == "") break;
     
-            CartDataPoint<double>* dp = knn::get_point<double>(output, stod, true);
-            settings.true_names.push_back(dp->class_type());
+            CartDataPoint<double>* dp = knn::get_point<double>(output, stod, false);
             settings.classified_names.push_back(settings.data_set->get_nearest_class(settings.k_value, dp, settings.distance_metric));
     
             delete dp;
@@ -185,21 +184,19 @@ namespace knn {
     }
     
     void Display_Confusion_Matrix::execute(CLI::Settings& settings) {
-        if (!settings.is_classified) {
-            settings.dio << "\e[31;1mHaven't classified any data yet!\e[0m\n";
-            return;
-        }
-
+        std::vector<std::string> classified_names;
+        std::vector<std::string> true_names;
         std::set<std::string> classes;
 
-        if (settings.true_names.size() != settings.classified_names.size())
-            settings.dio << std::string("\e[31;1mMismatch between number of classified and true classes.\e[0m Have ") +
-                std::to_string(settings.classified_names.size())  + " and "  + std::to_string(settings.true_names.size()) +
-                ".\n\tPlease ensure that your test and train files " + "have the same number of lines.\n";
+        for (auto dp : settings.data_set->get_data()) {
+            // Classify the train file relative to itself.
+            std::string classified_name = settings.data_set->get_nearest_class(settings.k_value, dp, settings.distance_metric);
+            classified_names.push_back(classified_name);
+            true_names.push_back(dp->class_type());
 
-        for (size_t i = 0; i < settings.true_names.size(); i++) {
-            classes.insert(settings.true_names[i]);
-            classes.insert(settings.classified_names[i]);
+            // Add the names of the classes to the classes set.
+            classes.insert(classified_name);
+            classes.insert(dp->class_type());
         }
     
         std::unordered_map<std::string, size_t> class_order;
@@ -217,9 +214,9 @@ namespace knn {
         }
     
         /* Compute the confusion matrix */
-        for (size_t i = 0; i < settings.true_names.size(); i++) {
-            confusion_matrix[class_order[settings.true_names[i]]][class_order[settings.classified_names[i]]]++;
-            true_count[class_order[settings.true_names[i]]]++;
+        for (size_t i = 0; i < true_names.size(); i++) {
+            confusion_matrix[class_order[true_names[i]]][class_order[classified_names[i]]]++;
+            true_count[class_order[true_names[i]]]++;
         }
     
         /* Print the confusion matrix */
@@ -230,8 +227,7 @@ namespace knn {
             for (size_t j = 0; j < classes.size(); j++) {
                 std::string num;
                 if (true_count[i] > 0) num = std::to_string((100 * confusion_matrix[i][j]) / true_count[i]) + "%";
-                else if (confusion_matrix[i][j] == 0) num = "0%";
-                else num = "inf";
+                else num = "NaN";
                 line += std::string("|\t") + num + "\t";
             }
 

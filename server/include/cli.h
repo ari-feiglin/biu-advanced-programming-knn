@@ -153,7 +153,6 @@ namespace knn {
                 std::string distance_metric_name;
                 std::string test_file;                          // The file to test the database with (classified)
                 bool is_classified;                             // Whether or not the data has been classified already
-                std::vector<std::string> true_names;            // A vector of the true class names
                 std::vector<std::string> classified_names;      // A vector of the classified names
 
                 Settings(DefaultIO& io, int k,

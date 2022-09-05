@@ -142,6 +142,8 @@ namespace knn {
             template <typename M>
             std::string get_nearest_class(int k, const DataPoint<T>* p, M (*distance)(const DataPoint<T>*, const DataPoint<T>*)) const;
 
+            const std::vector<DataPoint<T>*>& get_data() { return this->m_data; }
+
         private:
             /**
              * Struct for representing distances between Data points.
